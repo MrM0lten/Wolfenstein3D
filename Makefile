@@ -64,7 +64,7 @@ delete_mlx:
 	rm -rf MLX42
 
 run: $(TARGET)
-	./$(TARGET)
+	make && ./$(TARGET)
 
 print-%:
 	@echo $* = $($*)
