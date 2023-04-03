@@ -8,7 +8,5 @@ int main()
 	if (!mlx)
 		printf("error\n");
 	mlx_loop(mlx);
-
-	
 	//mlx_terminate();
 }

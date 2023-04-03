@@ -13,7 +13,8 @@ LIB_DEPS := libft.a libmlx42.a libglfw.a
 LIB_DIRS := libft MLX42/build
 
 # Includes
-INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) $(wildcard */*/*/*/) MLX42/include/MLX42
+INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) \
+			$(wildcard */*/*/*/) MLX42/include/MLX42
 
 # Directories
 SRC_DIR := src
@@ -25,9 +26,10 @@ BLD_DIR	:= build
 SRC := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*/*.c)
 OBJ := $(addprefix $(BLD_DIR)/, $(SRC:.c=.o))
 
-E_INC_DIRS	:= $(foreach dir, $(INC_DIRS), $(addprefix -I./, $(dir)))
-E_LIB_DIRS	:= $(foreach dir, $(LIB_DIRS), $(addprefix -L./, $(dir)))
-E_LIB_DEPS	:= $(foreach lib, $(LIB_DEPS), $(addprefix -l, $(subst .a, , $(subst lib, , $(lib)))))
+E_INC_DIRS	:=	$(foreach dir, $(INC_DIRS), $(addprefix -I./, $(dir)))
+E_LIB_DIRS	:=	$(foreach dir, $(LIB_DIRS), $(addprefix -L./, $(dir)))
+E_LIB_DEPS	:=	$(foreach lib, $(LIB_DEPS), \
+				$(addprefix -l, $(subst .a, , $(subst lib, , $(lib)))))
 
 # =======BUILD=======
 all: $(TARGET)
