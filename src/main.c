@@ -2,33 +2,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "MLX42.h"
-
 
 #define IMG_WIDTH 1024
 #define IMG_HEIGHT 512
 #define SQ_DIM 64
 
+#define PI 3.1415926
+
 int p_x = 256;
 int p_y = 256;
+float pdx = 0;
+float pdy = 0;
+float pa = 2*PI;
 
 mlx_image_t* image;
 
+//adjusts player locations
 void ft_hook(void* param)
 {
 	mlx_t* mlx = param;
 
 	if (mlx_is_key_down(mlx, MLX_KEY_ESCAPE))
 		mlx_close_window(mlx);
-	if (mlx_is_key_down(mlx, MLX_KEY_UP))
-		p_y -= 1;
-	if (mlx_is_key_down(mlx, MLX_KEY_DOWN))
-		p_y += 1;
+	//reduce angle
 	if (mlx_is_key_down(mlx, MLX_KEY_LEFT))
-		p_x -= 1;
+	{
+		pa -=0.1;
+		if(pa < 0)
+			pa += 2 * PI;
+		pdx = cos(pa) * 5;
+		pdy = sin(pa) * 5;
+		//p_x -= 1;
+
+	}
+	//add angle
 	if (mlx_is_key_down(mlx, MLX_KEY_RIGHT))
-		p_x += 1;
+	{
+		pa +=0.1;
+		if(pa > 2 * PI)
+			pa -= 2 * PI;
+		pdx = cos(pa) * 5;
+		pdy = sin(pa) * 5;
+		//p_x += 1;
+
+	}
+	if (mlx_is_key_down(mlx, MLX_KEY_UP))
+	{
+		p_x += pdx;
+		p_y += pdy;
+		//p_y -= 1;
+
+	}
+	if (mlx_is_key_down(mlx, MLX_KEY_DOWN))
+	{
+		p_x -= pdx;
+		p_y -= pdy;
+		//p_y += 1;
+
+	}
 }
 
 
@@ -93,7 +127,6 @@ int main()
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
 		printf("error\n");
-
 
 	image = mlx_new_image(mlx, IMG_WIDTH / 2, IMG_HEIGHT);
 
