@@ -9,11 +9,11 @@ CFLAGS	:=	-g
 TARGET	:= wolfenstein
 
 # Dependencies
-LIB_DEPS := libft.a
-LIB_DIRS := libft
+LIB_DEPS := libft.a libmlx42.a libglfw.a
+LIB_DIRS := libft MLX42/build
 
 # Includes
-INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) $(wildcard */*/*/*/)
+INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) $(wildcard */*/*/*/) MLX42/include/MLX42
 
 # Directories
 SRC_DIR := src
@@ -59,11 +59,18 @@ clean:
 
 re: fclean all
 
+delete_mlx:
+	rm -rf MLX42
+
 run: $(TARGET)
 	./$(TARGET)
 
 print-%:
 	@echo $* = $($*)
+
+build_mlx:
+	git clone https://github.com/codam-coding-college/MLX42.git
+	cd MLX42; cmake -B build; cmake --build build -j4
 
 # Colors
 DEF_COLOR	=	\033[0;39m
