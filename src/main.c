@@ -12,13 +12,46 @@
 
 #define PI 3.1415926
 
-int p_x = 256;
-int p_y = 256;
+float p_x = 256.f;
+float p_y = 256.f;
 float pdx = 0;
 float pdy = 0;
 float pa = 2*PI;
 
 mlx_image_t* image;
+
+double	vector2d_len(double x, double y)
+{
+	return (sqrt(pow(x, 2) + pow(y, 2)));
+}
+
+void	drawline(int ax,int ay, int bx,int by, int color)
+{
+	double	len;
+	double	i;
+	double	t;
+	double	tempx;
+	double	tempy;
+	double	valx;
+	double	valy;
+
+	if (ax >= IMG_WIDTH/2 || ax <= 0 || ay >= IMG_HEIGHT || ay <= 0
+		|| bx >= IMG_WIDTH/2 || bx <= 0 || by >= IMG_HEIGHT || by <= 0)
+		return ;
+	len = vector2d_len(ax -bx,ay-by);
+	i = 0;
+	while (i < len)
+	{
+		t = i / len;
+		tempx = ax-bx;
+		tempy = ay-by;
+		valx = (1 - t) * tempx + bx;
+		valy = (1 - t) * tempy + by;
+		mlx_put_pixel(image, valx, valy, color);
+		i += 1;
+	}
+}
+
 
 //adjusts player locations
 void ft_hook(void* param)
@@ -35,6 +68,8 @@ void ft_hook(void* param)
 			pa += 2 * PI;
 		pdx = cos(pa) * 5;
 		pdy = sin(pa) * 5;
+
+
 		//p_x -= 1;
 
 	}
@@ -46,6 +81,8 @@ void ft_hook(void* param)
 			pa -= 2 * PI;
 		pdx = cos(pa) * 5;
 		pdy = sin(pa) * 5;
+
+
 		//p_x += 1;
 
 	}
@@ -53,6 +90,8 @@ void ft_hook(void* param)
 	{
 		p_x += pdx;
 		p_y += pdy;
+
+
 		//p_y -= 1;
 
 	}
@@ -60,9 +99,12 @@ void ft_hook(void* param)
 	{
 		p_x -= pdx;
 		p_y -= pdy;
+
+
 		//p_y += 1;
 
 	}
+	printf("%f\n",pa);
 }
 
 
@@ -74,9 +116,9 @@ int32_t ft_pixel(int32_t r, int32_t g, int32_t b, int32_t a)
 //draws a rectangle to an imagine based on some dimensions
 void draw_rect(mlx_image_t* image, int x, int y, int val)
 {
-	//calculate max position -1 to create a border around squares
-	int x_max = x*SQ_DIM + SQ_DIM -1;
-	int y_max = y*SQ_DIM + SQ_DIM -1;
+	//calculate max position
+	int x_max = x*SQ_DIM + SQ_DIM ;
+	int y_max = y*SQ_DIM + SQ_DIM ;
 	for (int i = y*SQ_DIM; i < y_max; i++)
 	{
 		for (int j = x*SQ_DIM; j < x_max; j++)
@@ -86,8 +128,17 @@ void draw_rect(mlx_image_t* image, int x, int y, int val)
 			else
 				mlx_put_pixel(image, j, i, 0x000000FF);
 		}
-
 	}
+
+	//debugging to draw border around cubes
+	uint32_t color = 0x2A2A2AFF;
+	for (int i = y_max-1; i < y_max; i++)
+	{
+		for (int j = x_max-SQ_DIM; j < x_max; j++)
+			mlx_put_pixel(image, j, i, color);
+	}
+	for (int i = y_max-SQ_DIM; i < y_max; i++)
+			mlx_put_pixel(image, x_max-1, i, color);
 }
 
 void draw_minimap(void* param)
@@ -113,12 +164,15 @@ void draw_minimap(void* param)
 	}
 
 	//draw player
-	int p_size = 5;
+	int p_size = 6;
 	for (int i = 0; i < p_size; i++)
 	{
 		for (int j = 0; j < p_size; j++)
-			mlx_put_pixel(image, p_x+j, p_y+i, 0xFF0000FF);
+			mlx_put_pixel(image, p_x+j-p_size/2, p_y+i-p_size/2, 0xFF0000FF);
 	}
+	//draw player forward vector
+	float line_mult = 5;
+	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
 }
 
 int main()
