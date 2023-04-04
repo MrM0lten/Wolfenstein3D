@@ -4,7 +4,11 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include <sys/time.h>
+
 #include "MLX42.h"
+#include "libft.h"
+
 
 #define IMG_WIDTH 1024
 #define IMG_HEIGHT 512
@@ -19,6 +23,56 @@ float pdy = 0;
 float pa = 2*PI;
 
 mlx_image_t* image;
+mlx_image_t* image2;
+
+//some frame counting
+int nbFrames = 0;
+#define DELAYPROCESS 100000000
+
+size_t	get_time(void)
+{
+	struct timeval	tv;
+
+	gettimeofday(&tv, NULL);
+	return ((tv.tv_sec ));
+}
+size_t lastTime;
+
+void draw_fps_counter(mlx_t* mlx)
+{
+	//draw fps counter
+	char *test;
+	test = ft_itoa(nbFrames);
+	//mlx_put_string(mlx,test,768,256);
+	mlx_delete_image(mlx,image2);
+	image2 = mlx_put_string(mlx,test,IMG_WIDTH -32,8);
+	free(test);
+}
+
+void count_frames(void* param)
+{
+	mlx_t* mlx = param;
+     // Measure speed
+     double currentTime = get_time();
+     nbFrames++;
+     if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
+         // printf and reset timer
+		draw_fps_counter(mlx);
+
+        //printf("%f ms/frame, FPS = %d\n", 1000.0/(double)nbFrames,nbFrames);
+        nbFrames = 0;
+        lastTime =  get_time();
+     }
+}
+//slow down process for FPS testing
+void slow_process(void* param)
+{
+	int i = 0;
+	while(i < DELAYPROCESS)
+	{
+		i++;
+	}
+}
 
 double	vector2d_len(double x, double y)
 {
@@ -104,7 +158,7 @@ void ft_hook(void* param)
 		//p_y += 1;
 
 	}
-	printf("%f\n",pa);
+	//printf("%f\n",pa);
 }
 
 
@@ -143,6 +197,8 @@ void draw_rect(mlx_image_t* image, int x, int y, int val)
 
 void draw_minimap(void* param)
 {
+	mlx_t* mlx = param;
+
 	int x = 8;
 	int y = 8;
 	int total = x*y;
@@ -173,6 +229,7 @@ void draw_minimap(void* param)
 	//draw player forward vector
 	float line_mult = 5;
 	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
+
 }
 
 int main()
@@ -184,11 +241,12 @@ int main()
 
 	image = mlx_new_image(mlx, IMG_WIDTH / 2, IMG_HEIGHT);
 
-
+	lastTime = get_time();
 	mlx_loop_hook(mlx, draw_minimap, mlx);
 	mlx_loop_hook(mlx, ft_hook, mlx);
+	mlx_loop_hook(mlx, count_frames, mlx);
+	//mlx_loop_hook(mlx, slow_process, mlx); //turn this on to test FPS counter
 	mlx_image_to_window(mlx, image, 0, 0);
-
 	mlx_loop(mlx);
 	mlx_terminate(mlx);
 	return (0);
