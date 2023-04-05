@@ -232,7 +232,7 @@ void draw_minimap(void* param)
 
 }
 
-int main()
+int definitely_not_main()
 {
 
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
@@ -247,6 +247,8 @@ int main()
 	mlx_loop_hook(mlx, count_frames, mlx);
 	//mlx_loop_hook(mlx, slow_process, mlx); //turn this on to test FPS counter
 	mlx_image_to_window(mlx, image, 0, 0);
+
+
 	mlx_loop(mlx);
 	mlx_terminate(mlx);
 	return (0);
