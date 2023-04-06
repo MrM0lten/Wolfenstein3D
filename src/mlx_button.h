@@ -6,11 +6,12 @@
 #include <string.h>
 
 #include "MLX42.h"
+#include "MLX42_Int.h"
 
 typedef struct s_button_text
 {
-    u_int8_t *tex_def;
-    u_int8_t *tex_hlight;
+    mlx_texture_t *tex_def;
+    mlx_texture_t *tex_hlight;
 
 } btn_textures_t;
 
@@ -24,6 +25,7 @@ typedef struct s_button
 } button_t;
 
 btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight);
+bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight);
 
 button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color);
 void mlx_delete_button(mlx_t* mlx,button_t* btn);
