@@ -3,7 +3,7 @@ MAKEFLAGS = --no-print-directory
 
 # Compiler
 CC		:=	cc
-CFLAGS	:=	-g
+CFLAGS	:= -g
 
 # Targets
 TARGET	:= wolfenstein
