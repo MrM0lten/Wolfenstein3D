@@ -25,7 +25,7 @@ static mlx_texture_t *create_texture_from_color(uint32_t width,uint32_t height,u
         ret->pixels[i] = (uint8_t)(color >> 24);
         ret->pixels[i+1] = (uint8_t)(color >> 16);
         ret->pixels[i+2] = (uint8_t)(color >> 8);
-        ret->pixels[i+3] = (uint8_t)color;
+        ret->pixels[i+3] = (uint8_t)color & 0xFF;
     }
     ret->bytes_per_pixel = sizeof(uint32_t);
     ret->height = height;
@@ -40,20 +40,39 @@ static mlx_texture_t *create_texture_from_color(uint32_t width,uint32_t height,u
 
 //note: default should probably define the initial size of all textures
 //do proper error checking, figure out what to display if a texture fails
-btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight)
+btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight,char *pressed)
 {
     btn_textures_t *tex;
     tex = malloc(sizeof(btn_textures_t));
     tex->tex_def = mlx_load_png(deflt);
     tex->tex_hlight = mlx_load_png(highlight);
+    tex->tex_pressed = mlx_load_png(pressed);
 
     //scale every image to be the right size based on default
     if(check_texture_dim( tex->tex_def,tex->tex_hlight) == 0)
         mlx_resize_texture(tex->tex_hlight,tex->tex_def->width,tex->tex_def->height);
+    if(check_texture_dim( tex->tex_def,tex->tex_pressed) == 0)
+        mlx_resize_texture(tex->tex_pressed,tex->tex_def->width,tex->tex_def->height);
 
     //mlx_resize_texture(tex->tex_def,750,30); // random check if it works
 
     return (tex);
+}
+
+
+void mlx_btn_bind_on_hover(button_t *btn,void (*f)(void *))
+{
+    btn->on_hover = f;
+}
+
+void mlx_btn_bind_on_click(button_t *btn,void (*f)(void *))
+{
+    btn->on_click = f;
+}
+
+void mlx_btn_bind_on_release(button_t *btn,void (*f)(void *))
+{
+    btn->on_release = f;
 }
 
 //need to decide what happens if no texture data is given
@@ -67,9 +86,16 @@ button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint3
     btn->highl_col = 0xFF0000FF;
     btn->world_posx = -1; //not put to the image yet
     btn->world_posy = -1;
+    //setup internals
     btn->fhover = f_hover;
     btn->fhover_end = f_hover_end;
+    btn->fclick = f_click;
+    btn->frelease = f_release;
+
+    //setup public functions
     btn->on_hover = NULL;
+    btn->on_click = NULL;
+    btn->on_release = NULL;
 
     if(text != NULL){
         btn->img = mlx_new_image(mlx, text->tex_def->width, text->tex_def->height);
@@ -85,7 +111,8 @@ button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint3
         btn->textures = malloc(sizeof(btn_textures_t));
 
         btn->textures->tex_def = create_texture_from_color(width,height,color);
-        btn->textures->tex_hlight = create_texture_from_color(width,height,0xFF0000FF);
+        btn->textures->tex_hlight = create_texture_from_color(width,height,0x00FFFFFF);
+        btn->textures->tex_pressed = create_texture_from_color(width,height,0xFF0000FF);
 
         btn->temp_pixel_arr = btn->img->pixels;
         btn->img->pixels = btn->textures->tex_def->pixels;
@@ -111,6 +138,7 @@ void mlx_delete_button(mlx_t* mlx,button_t* btn)
     //figure out which pointer to free depending on the state
     mlx_delete_texture(btn->textures->tex_def);
     mlx_delete_texture(btn->textures->tex_hlight);
+    mlx_delete_texture(btn->textures->tex_pressed);
     free(btn->textures);
     free(btn);
 
@@ -122,7 +150,7 @@ void mlx_delete_button(mlx_t* mlx,button_t* btn)
 //checks if mouse is within button bounds, returns its result
 bool mouse_over_button(button_t* btn, int mx,int my)
 {
-    printf("help [%d][%d],[%d][%d]\n",btn->world_posx,btn->world_posy,btn->img->width,btn->img->height);
+    printf("btn pos,[%d][%d],image width [%d][%d]\n",btn->world_posx,btn->world_posy,btn->img->width,btn->img->height);
     if(mx < btn->world_posx || my < btn->world_posy
     || mx > btn->img->width + btn->world_posx
     || my > btn->img->height + btn->world_posy)
@@ -133,29 +161,37 @@ bool mouse_over_button(button_t* btn, int mx,int my)
 }
 
 
-void f_hover(void* param)
+void f_hover(button_t *btn,void* param)
 {
-    button_t *btn = param;
-    printf("PENIS\n");
     btn->img->pixels = btn->textures->tex_hlight->pixels;
-    printf("asd\n");
     if(btn->on_hover != NULL)
-        btn->on_hover();
+        btn->on_hover(param);
 }
 
-void f_hover_end(void *param)
+void f_hover_end(button_t *btn,void *param)
 {
-    button_t *btn = param;
-    printf("PENIS\n");
     btn->img->pixels = btn->textures->tex_def->pixels;
-    printf("asd\n");
 /*     if(btn->on_hover != NULL)
         btn->on_hover(); */
 }
 
+void f_click(button_t *btn,void* param)
+{
+    printf("internal f_clicked() called\n");
 
+    btn->img->pixels = btn->textures->tex_pressed->pixels;
+    if(btn->on_click != NULL)
+        btn->on_click(param);
+}
 
-
+void f_release(button_t *btn,void *param)
+{
+    printf("internal f_released() called\n");
+    printf("testaaaaaaaaaaaaaaaaaa\n");
+    btn->img->pixels = btn->textures->tex_def->pixels;
+    if(btn->on_release != NULL)
+        btn->on_release(param);
+}
 
 
 //note: this is a copy of the original function just using a texture instead of an image

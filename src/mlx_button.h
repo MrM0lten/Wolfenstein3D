@@ -12,6 +12,7 @@ typedef struct s_button_text
 {
     mlx_texture_t *tex_def;
     mlx_texture_t *tex_hlight;
+    mlx_texture_t *tex_pressed;
 
 } btn_textures_t;
 
@@ -28,25 +29,42 @@ typedef struct s_button
     uint8_t *temp_pixel_arr;
 
     //internal function shouldn"t be changed
-    void (*fhover)(void *);
-    void (*fhover_end)(void *);
+    void (*fhover)(struct s_button *,void *);
+    void (*fhover_end)(struct s_button *,void *);
+    void (*fclick)(struct s_button *,void *);
+    void (*frelease)(struct s_button *,void *);
 
     //public changeable function
-    void (*on_hover)(void);
+    void (*on_hover)(void *);
+    void (*on_click)(void *);
+    void (*on_release)(void *);
 
 } button_t;
 
+//-------------------sketchy section-------------
+
 //not so well thought of architecture
 bool mouse_over_button(button_t* btn, int mx,int my);
-void f_hover(void *param);
-void f_hover_end(void *param);
 
-btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight);
+//giving the option to call pass a user defined param, but i dont want them to ever be called? might not make sense
+void f_hover(button_t *btn,void *param);
+void f_hover_end(button_t *btn,void *param);
+void f_click(button_t *btn,void *param);
+void f_release(button_t *btn,void *param);
+
+//-------------------okay section-------------
+
+btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight,char *pressed);
 bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight);
 
 button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color);
 void mlx_delete_button(mlx_t* mlx,button_t* btn);
 int32_t mlx_button_to_window(mlx_t* mlx, button_t* btn, int32_t x, int32_t y);
+
+//give user the option to bind user defined functions on events
+void mlx_btn_bind_on_release(button_t *btn,void (*f)(void *));
+void mlx_btn_bind_on_click(button_t *btn,void (*f)(void *));
+void mlx_btn_bind_on_hover(button_t *btn,void (*f)(void *));
 
 
 #endif
