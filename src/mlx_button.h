@@ -8,6 +8,13 @@
 #include "MLX42.h"
 #include "MLX42_Int.h"
 
+
+typedef struct s_btn_list
+{
+	void			*content;
+	struct s_btn_list	*next;
+}t_btn_list;
+
 typedef struct s_button_text
 {
     mlx_texture_t *tex_def;
@@ -28,12 +35,6 @@ typedef struct s_button
     //used to save image pixel array
     uint8_t *temp_pixel_arr;
 
-    //internal function shouldn"t be changed
-    void (*fhover)(struct s_button *,void *);
-    void (*fhover_end)(struct s_button *,void *);
-    void (*fclick)(struct s_button *,void *);
-    void (*frelease)(struct s_button *,void *);
-
     //public changeable function
     void (*on_hover)(void *);
     void (*on_click)(void *);
@@ -41,23 +42,56 @@ typedef struct s_button
 
 } button_t;
 
+//node for a mlx_mousefunc linked list
+typedef struct mousefunc_node_s
+{
+    void (*mousefunc)(mouse_key_t, action_t, modifier_key_t , void* );
+    void *param;
+    struct mousefunc_node_s *next;
+
+} mousefunc_node_t;
+
+//node for a mlx_mousefunc linked list
+typedef struct cursorfunc_node_s
+{
+    void (*cursorfunc)(double xpos, double ypos, void* param);
+    void *param;
+    struct cursorfunc_node_s *next;
+
+} cursorfunc_node_t;
+
+//wrappes around mlx and addes functions and param linked lists
+typedef struct mlx_btn_s
+{
+    mlx_t *mlx;
+    t_btn_list *buttons; //linked list of all currently existing buttons type: button_t
+    t_btn_list *mouse_func; //all functions bound to mouse_hook()        type: mousefunc_node_t
+    t_btn_list *cursorfunc; //all functions bound to mouse_hook()        type: cursorfunc_node_t
+
+} mlx_btn_t;
+
 //-------------------sketchy section-------------
+
+//main initializer of button wrapper
+mlx_btn_t *mlx_button_init(mlx_t* mlx);
+void mlx_button_terminate(mlx_btn_t *btn);
+button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color);
+
+void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param);
+void generic_mouse_hook(mlx_btn_t* btn, mlx_mousefunc func, void* param);
+
 
 //not so well thought of architecture
 bool mouse_over_button(button_t* btn, int mx,int my);
 
 //giving the option to call pass a user defined param, but i dont want them to ever be called? might not make sense
-void f_hover(button_t *btn,void *param);
-void f_hover_end(button_t *btn,void *param);
-void f_click(button_t *btn,void *param);
-void f_release(button_t *btn,void *param);
+
 
 //-------------------okay section-------------
 
 btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight,char *pressed);
 bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight);
 
-button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color);
 void mlx_delete_button(mlx_t* mlx,button_t* btn);
 int32_t mlx_button_to_window(mlx_t* mlx, button_t* btn, int32_t x, int32_t y);
 

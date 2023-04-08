@@ -2,6 +2,83 @@
 
 // PRIVATE //
 
+//libft list shit
+
+t_btn_list	*btn_lstlast(t_btn_list *lst)
+{
+	if (!lst)
+		return (NULL);
+	while (lst->next)
+		lst = lst->next;
+	return (lst);
+}
+
+void	btn_lstadd_back(t_btn_list **lst, t_btn_list *new_elem)
+{
+	t_btn_list	*tmp;
+
+	if (!(*lst))
+	{
+		*lst = new_elem;
+		return ;
+	}
+	tmp = btn_lstlast(*lst);
+	tmp->next = new_elem;
+}
+
+t_btn_list	*btn_lstnew(void *content)
+{
+	t_btn_list	*new;
+
+	new = malloc(sizeof(t_btn_list));
+	if (!new)
+		return (NULL);
+	new->content = content;
+	new->next = NULL;
+	return (new);
+}
+
+
+void	btn_lstadd_front(t_btn_list **lst, t_btn_list *new_elem)
+{
+	new_elem->next = *lst;
+	*lst = new_elem;
+}
+
+static void f_hover(button_t *btn,void* param)
+{
+    btn->img->pixels = btn->textures->tex_hlight->pixels;
+    if(btn->on_hover != NULL)
+        btn->on_hover(param);
+}
+
+static void f_hover_end(button_t *btn,void *param)
+{
+    btn->img->pixels = btn->textures->tex_def->pixels;
+/*     if(btn->on_hover != NULL)
+        btn->on_hover(); */
+}
+
+static void f_click(button_t *btn,void* param)
+{
+    printf("internal f_clicked() called\n");
+
+    btn->img->pixels = btn->textures->tex_pressed->pixels;
+    if(btn->on_click != NULL)
+        btn->on_click(param);
+}
+
+static void f_release(button_t *btn,void *param)
+{
+    printf("internal f_released() called\n");
+    printf("testaaaaaaaaaaaaaaaaaa\n");
+    btn->img->pixels = btn->textures->tex_def->pixels;
+    if(btn->on_release != NULL)
+        btn->on_release(param);
+}
+
+
+
 static int check_texture_dim(mlx_texture_t *dftl,mlx_texture_t *other)
 {
     if(dftl->width == other->width && dftl->height == other->height)
@@ -35,7 +112,131 @@ static mlx_texture_t *create_texture_from_color(uint32_t width,uint32_t height,u
 }
 
 
+//calls all mouse hook events that are part of the linked list
+void default_mouse_hook(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
+{
+	mlx_btn_t *btn = param;
+    t_btn_list *curr = btn->mouse_func;
+    mousefunc_node_t *node;
+
+    while(curr != NULL)
+    {
+        node = (mousefunc_node_t *)curr->content;
+        node->mousefunc(button,action,mods,node->param);
+        curr = curr->next;
+    }
+
+}
+
+//calls all cursor hook events that ar part of the linked list
+void default_cursor_hook(double xpos, double ypos, void* param)
+{
+	mlx_btn_t *btn = param;
+    t_btn_list *curr = btn->cursorfunc;
+    cursorfunc_node_t *node;
+
+    while(curr != NULL)
+    {
+        node = (cursorfunc_node_t *)curr->content;
+        node->cursorfunc(xpos,ypos,node->param);
+        curr = curr->next;
+    }
+
+}
+
+
+//initial very specific button ho still need to work on the param versions what to actually pass in
+void btn_mouse_hook(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
+{
+	mlx_btn_t *btn = param;
+	if(button != MLX_MOUSE_BUTTON_LEFT)
+		return;
+	int x;
+	int y;
+	mlx_get_mouse_pos(btn->mlx,&x,&y);
+
+    t_btn_list *curr = btn->buttons;
+    button_t *node;
+    while(curr != NULL)
+    {
+        node = (button_t *)curr->content;
+        if(action == MLX_PRESS && mouse_over_button(node, x, y))
+			f_click(node,param);
+		else if(action == MLX_RELEASE && mouse_over_button(node, x, y))
+			f_release(node,param);
+        curr = curr->next;
+    }
+}
+
+void btn_cursor_hook(double xpos, double ypos, void* param)
+{
+	mlx_btn_t *btn = param;
+
+    t_btn_list *curr = btn->buttons;
+    button_t *node;
+    while(curr != NULL)
+    {
+        node = (button_t *)curr->content;
+        if(mouse_over_button(node, xpos, ypos))
+			f_hover(node,param);
+		else
+			f_hover_end(node,param);
+        curr = curr->next;
+    }
+}
+
+
+
 // PUBLIC //
+
+//creates a button object and binds to mouse_hook() and cursor_hook()
+//serves as a wrapper for all hook functions
+mlx_btn_t *mlx_button_init(mlx_t* mlx)
+{
+    mlx_btn_t *btn = malloc(sizeof(mlx_btn_t));
+    btn->mlx = mlx;
+    btn->cursorfunc = NULL;
+    btn->mouse_func = NULL;
+    btn->buttons = NULL;
+
+    //generic functions that should call all other functions respectively
+    mlx_cursor_hook(mlx, default_cursor_hook, btn);
+	mlx_mouse_hook(mlx, default_mouse_hook,btn);
+
+    //first binding to allow for all kinds of events for buttons
+    generic_cursor_hook(btn,btn_cursor_hook,btn);
+    generic_mouse_hook(btn,btn_mouse_hook,btn);
+
+    return (btn);
+}
+
+//cleans up everything related to buttons
+void mlx_button_terminate(mlx_btn_t *btn)
+{
+    //do shit
+}
+
+//create a new node and add it to linked list
+void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)
+{
+    cursorfunc_node_t *new = malloc(sizeof(cursorfunc_node_t));
+    new->next = NULL;
+    new->cursorfunc = func;
+    new->param = param;
+
+    btn_lstadd_back(&btn->cursorfunc,btn_lstnew(new));
+}
+
+void generic_mouse_hook(mlx_btn_t* btn, mlx_mousefunc func, void* param)
+{
+    mousefunc_node_t *new = malloc(sizeof(mousefunc_node_t));
+    new->next = NULL;
+    new->mousefunc = func;
+    new->param = param;
+
+    btn_lstadd_back(&btn->mouse_func,btn_lstnew(new));
+}
+
 
 
 //note: default should probably define the initial size of all textures
@@ -59,7 +260,8 @@ btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight,char *presse
     return (tex);
 }
 
-
+//might need to rething how the user will access these functions if the buttons are part of a linked list
+//edit: should actually be fine, becuase create button returns a pointer to the correct object
 void mlx_btn_bind_on_hover(button_t *btn,void (*f)(void *))
 {
     btn->on_hover = f;
@@ -77,48 +279,52 @@ void mlx_btn_bind_on_release(button_t *btn,void (*f)(void *))
 
 //need to decide what happens if no texture data is given
 //probably makes sense to split button creating based on texture or not
-button_t* mlx_create_button(mlx_t* mlx,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color)
+button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,uint32_t height,uint32_t color)
 {
-    button_t *btn;
+    button_t *ret;
 
-    btn = malloc(sizeof(button_t));
-    btn->def_col = color;
-    btn->highl_col = 0xFF0000FF;
-    btn->world_posx = -1; //not put to the image yet
-    btn->world_posy = -1;
+    ret = malloc(sizeof(button_t));
+    ret->def_col = color;
+    ret->highl_col = 0xFF0000FF;
+    ret->world_posx = -1; //not put to the image yet
+    ret->world_posy = -1;
     //setup internals
-    btn->fhover = f_hover;
-    btn->fhover_end = f_hover_end;
-    btn->fclick = f_click;
-    btn->frelease = f_release;
 
     //setup public functions
-    btn->on_hover = NULL;
-    btn->on_click = NULL;
-    btn->on_release = NULL;
+    ret->on_hover = NULL;
+    ret->on_click = NULL;
+    ret->on_release = NULL;
 
     if(text != NULL){
-        btn->img = mlx_new_image(mlx, text->tex_def->width, text->tex_def->height);
-        btn->textures = text;
-        btn->temp_pixel_arr = btn->img->pixels; //do i want that?
-        btn->img->pixels = text->tex_def->pixels;
-        btn->img->count = text->tex_def->height * text->tex_def->width;
+        ret->img = mlx_new_image(btn->mlx, text->tex_def->width, text->tex_def->height);
+        ret->textures = text;
+        ret->temp_pixel_arr = ret->img->pixels; //do i want that?
+        ret->img->pixels = text->tex_def->pixels;
+        ret->img->count = text->tex_def->height * text->tex_def->width;
     }
     else{
 
         //generate default btn_texture to assign them in the right place
-        btn->img = mlx_new_image(mlx, width, height);
-        btn->textures = malloc(sizeof(btn_textures_t));
+        ret->img = mlx_new_image(btn->mlx, width, height);
+        ret->textures = malloc(sizeof(btn_textures_t));
 
-        btn->textures->tex_def = create_texture_from_color(width,height,color);
-        btn->textures->tex_hlight = create_texture_from_color(width,height,0x00FFFFFF);
-        btn->textures->tex_pressed = create_texture_from_color(width,height,0xFF0000FF);
+        ret->textures->tex_def = create_texture_from_color(width,height,color);
+        ret->textures->tex_hlight = create_texture_from_color(width,height,0x00FFFFFF);
+        ret->textures->tex_pressed = create_texture_from_color(width,height,0xFF0000FF);
 
-        btn->temp_pixel_arr = btn->img->pixels;
-        btn->img->pixels = btn->textures->tex_def->pixels;
-        btn->img->count = btn->textures->tex_def->height * btn->textures->tex_def->width;
+        ret->temp_pixel_arr = ret->img->pixels;
+        ret->img->pixels = ret->textures->tex_def->pixels;
+        ret->img->count = ret->textures->tex_def->height * ret->textures->tex_def->width;
     }
-    return btn;
+
+    //IMPORTANT before returning add it to the linked list of mlx_btn_t
+    //use lst add front from libft
+    if(btn->buttons == NULL)
+        btn->buttons = btn_lstnew(ret);
+    else
+        btn_lstadd_front(&(btn->buttons),btn_lstnew(ret));
+
+    return ret;
 }
 
 int32_t mlx_button_to_window(mlx_t* mlx, button_t* btn, int32_t x, int32_t y)
@@ -160,40 +366,6 @@ bool mouse_over_button(button_t* btn, int mx,int my)
     return true;
 }
 
-
-void f_hover(button_t *btn,void* param)
-{
-    btn->img->pixels = btn->textures->tex_hlight->pixels;
-    if(btn->on_hover != NULL)
-        btn->on_hover(param);
-}
-
-void f_hover_end(button_t *btn,void *param)
-{
-    btn->img->pixels = btn->textures->tex_def->pixels;
-/*     if(btn->on_hover != NULL)
-        btn->on_hover(); */
-}
-
-void f_click(button_t *btn,void* param)
-{
-    printf("internal f_clicked() called\n");
-
-    btn->img->pixels = btn->textures->tex_pressed->pixels;
-    if(btn->on_click != NULL)
-        btn->on_click(param);
-}
-
-void f_release(button_t *btn,void *param)
-{
-    printf("internal f_released() called\n");
-    printf("testaaaaaaaaaaaaaaaaaa\n");
-    btn->img->pixels = btn->textures->tex_def->pixels;
-    if(btn->on_release != NULL)
-        btn->on_release(param);
-}
-
-
 //note: this is a copy of the original function just using a texture instead of an image
 bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight)
 {
@@ -223,3 +395,6 @@ bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight)
 	}
 	return (true);
 }
+
+
+
