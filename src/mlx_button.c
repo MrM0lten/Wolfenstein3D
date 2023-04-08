@@ -4,6 +4,20 @@
 
 //libft list shit
 
+void	btn_lstclear(t_btn_list **lst, void (*del)(void *))
+{
+	t_btn_list	*tmp;
+
+	while ((*lst))
+	{
+		tmp = (*lst)->next;
+		del((*lst)->content);
+		free((*lst));
+		(*lst) = tmp;
+	}
+	*lst = NULL;
+}
+
 t_btn_list	*btn_lstlast(t_btn_list *lst)
 {
 	if (!lst)
@@ -38,6 +52,22 @@ t_btn_list	*btn_lstnew(void *content)
 	return (new);
 }
 
+void mlx_delete_button(void* content)
+{
+    button_t* btn = (button_t *)content;
+    //reassigning initial image pixel array for proper cleaning, helps to clean the individual arrays themselves
+    btn->img->pixels = btn->temp_pixel_arr;
+    mlx_delete_image(btn->mlx,btn->img);
+
+
+    //clean up texture references
+    mlx_delete_texture(btn->textures->tex_def);
+    mlx_delete_texture(btn->textures->tex_hlight);
+    mlx_delete_texture(btn->textures->tex_pressed);
+    free(btn->textures);
+    free(btn);
+
+}
 
 void	btn_lstadd_front(t_btn_list **lst, t_btn_list *new_elem)
 {
@@ -71,13 +101,22 @@ static void f_click(button_t *btn,void* param)
 static void f_release(button_t *btn,void *param)
 {
     printf("internal f_released() called\n");
-    printf("testaaaaaaaaaaaaaaaaaa\n");
     btn->img->pixels = btn->textures->tex_def->pixels;
     if(btn->on_release != NULL)
         btn->on_release(param);
 }
 
-
+//checks if mouse is within button bounds, returns its result
+bool mouse_over_button(button_t* btn, int mx,int my)
+{
+    if(mx < btn->world_posx || my < btn->world_posy
+    || mx > btn->img->width + btn->world_posx
+    || my > btn->img->height + btn->world_posy)
+    {
+        return false;
+    }
+    return true;
+}
 
 static int check_texture_dim(mlx_texture_t *dftl,mlx_texture_t *other)
 {
@@ -143,7 +182,6 @@ void default_cursor_hook(double xpos, double ypos, void* param)
     }
 
 }
-
 
 //initial very specific button ho still need to work on the param versions what to actually pass in
 void btn_mouse_hook(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
@@ -213,14 +251,19 @@ mlx_btn_t *mlx_button_init(mlx_t* mlx)
 //cleans up everything related to buttons
 void mlx_button_terminate(mlx_btn_t *btn)
 {
+
+    btn_lstclear(&btn->buttons,mlx_delete_button);
+    btn_lstclear(&btn->mouse_func, free);
+    btn_lstclear(&btn->cursorfunc, free);
+
     //do shit
+    free(btn);
 }
 
 //create a new node and add it to linked list
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)
 {
     cursorfunc_node_t *new = malloc(sizeof(cursorfunc_node_t));
-    new->next = NULL;
     new->cursorfunc = func;
     new->param = param;
 
@@ -230,7 +273,6 @@ void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)
 void generic_mouse_hook(mlx_btn_t* btn, mlx_mousefunc func, void* param)
 {
     mousefunc_node_t *new = malloc(sizeof(mousefunc_node_t));
-    new->next = NULL;
     new->mousefunc = func;
     new->param = param;
 
@@ -284,6 +326,7 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
     button_t *ret;
 
     ret = malloc(sizeof(button_t));
+    ret->mlx = btn->mlx;
     ret->def_col = color;
     ret->highl_col = 0xFF0000FF;
     ret->world_posx = -1; //not put to the image yet
@@ -327,43 +370,11 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
     return ret;
 }
 
-int32_t mlx_button_to_window(mlx_t* mlx, button_t* btn, int32_t x, int32_t y)
+int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y)
 {
     btn->world_posx = x; //not put to the image yet
     btn->world_posy = y;
     return (mlx_image_to_window(mlx,btn->img,x,y));
-}
-
-void mlx_delete_button(mlx_t* mlx,button_t* btn)
-{
-    //reassigning initial image pixel array for proper cleaning, helps to clean the individual arrays themselves
-    btn->img->pixels = btn->temp_pixel_arr;
-    mlx_delete_image(mlx,btn->img);
-
-
-    //figure out which pointer to free depending on the state
-    mlx_delete_texture(btn->textures->tex_def);
-    mlx_delete_texture(btn->textures->tex_hlight);
-    mlx_delete_texture(btn->textures->tex_pressed);
-    free(btn->textures);
-    free(btn);
-
-
-}
-
-
-//gotta think more about the architecture
-//checks if mouse is within button bounds, returns its result
-bool mouse_over_button(button_t* btn, int mx,int my)
-{
-    printf("btn pos,[%d][%d],image width [%d][%d]\n",btn->world_posx,btn->world_posy,btn->img->width,btn->img->height);
-    if(mx < btn->world_posx || my < btn->world_posy
-    || mx > btn->img->width + btn->world_posx
-    || my > btn->img->height + btn->world_posy)
-    {
-        return false;
-    }
-    return true;
 }
 
 //note: this is a copy of the original function just using a texture instead of an image

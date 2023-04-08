@@ -6,7 +6,15 @@
 #define HEIGHT 800
 
 
+void test_cursor(double xpos, double ypos, void* param)
+{
+	printf("PENIS\n");
+}
 
+void test_mouse(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
+{
+	printf("RIPPPPPPP\n");
+}
 
 void end_prog(void *param)
 {
@@ -17,17 +25,7 @@ void end_prog(void *param)
 }
 
 
-//potential solution to abstraction issue
-/* void handle_mouse(void* param)
-{
-	if (mouse_x > canvas)
-		t_menu = param;
-		menu(t_menu);
-	else
-		t_draw = param;
-		draw(t_draw);
-}
- */
+
 
 int main()
 {
@@ -42,11 +40,15 @@ int main()
 	button_t *t1 = mlx_create_button(btn,tex,300,100,0xFFFFFFFF);
 	button_t *t2 = mlx_create_button(btn,NULL,300,100,0xFFFFFFFF);
 
-    //should this be void instead?
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
 
 
+
+
+	//it works pog!!!
+	generic_cursor_hook(btn,test_cursor,btn);
+    generic_mouse_hook(btn,test_mouse,btn);
 
 	mlx_loop_hook(mlx,end_prog,mlx);
 	mlx_loop(mlx);
