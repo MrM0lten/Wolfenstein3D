@@ -23,6 +23,16 @@ typedef struct s_button_text
 
 } btn_textures_t;
 
+typedef struct s_btn_data
+{
+    void (*on_hover)(void *);
+    void *param_on_hover;
+    void (*on_click)(void *);
+    void *param_on_click;
+    void (*on_release)(void *);
+    void *param_on_release;
+}btn_data_t;
+
 typedef struct s_button
 {
     mlx_image_t* img;
@@ -33,15 +43,11 @@ typedef struct s_button
     uint32_t def_col;
     uint32_t highl_col;
 
+    //public changeable function data
+    btn_data_t *btn_data;
+
     //used to save image pixel array
     uint8_t *temp_pixel_arr;
-
-    //public changeable function
-
-    void (*on_hover)(void *);
-    void (*on_click)(void *);
-    void (*on_release)(void *);
-
 } button_t;
 
 //node for a mlx_mousefunc linked list
@@ -70,7 +76,6 @@ typedef struct mlx_btn_s
 
 } mlx_btn_t;
 
-//-------------------sketchy section-------------
 
 //main initializer of button wrapper
 mlx_btn_t *mlx_button_init(mlx_t* mlx);
@@ -80,16 +85,13 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param);
 void generic_mouse_hook(mlx_btn_t* btn, mlx_mousefunc func, void* param);
 
+//bind to functions
+void btn_bind_on_release(button_t *btn, void (f)(void *), void *param);
+void btn_bind_on_click(button_t *btn, void (f)(void *), void *param);
+void btn_bind_on_hover(button_t *btn, void (f)(void *), void *param);
 
-
-
-//giving the option to call pass a user defined param, but i dont want them to ever be called? might not make sense
-
-
-//-------------------okay section-------------
 
 btn_textures_t *mlx_create_btn_textures(char *deflt,char *highlight,char *pressed);
-bool mlx_resize_texture(mlx_texture_t* tex, uint32_t nwidth, uint32_t nheight);
 
 int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
 

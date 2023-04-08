@@ -8,12 +8,12 @@
 
 void test_cursor(double xpos, double ypos, void* param)
 {
-	printf("PENIS\n");
+	//printf("PENIS\n");
 }
 
 void test_mouse(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
 {
-	printf("RIPPPPPPP\n");
+	//printf("RIPPPPPPP\n");
 }
 
 void end_prog(void *param)
@@ -24,8 +24,18 @@ void end_prog(void *param)
 		mlx_close_window(mlx);
 }
 
+void test(void *param)
+{
+	button_t *btn = param;
 
+	//printf("whwow  %i\n",btn->highl_col);
+}
+void test_hover(void *param)
+{
+	button_t *btn = param;
 
+	//printf("HOVER over %i\n",btn->highl_col);
+}
 
 int main()
 {
@@ -44,7 +54,8 @@ int main()
 	mlx_button_to_window(mlx,t2,400,200);
 
 
-
+	btn_bind_on_click(t1, test,t1);
+	btn_bind_on_hover(t1, test_hover,t1);
 
 	//it works pog!!!
 	generic_cursor_hook(btn,test_cursor,btn);
@@ -52,11 +63,6 @@ int main()
 
 	mlx_loop_hook(mlx,end_prog,mlx);
 	mlx_loop(mlx);
-
-	//need to find a good structure here! might make sense to have a wrapper around terminate as well
-	// mlx_delete_button(mlx,btn_arr[0]);
-	// mlx_delete_button(mlx,btn_arr[1]);
-	// free(btn_arr);
 
 	mlx_button_terminate(btn);
 	mlx_terminate(mlx);
