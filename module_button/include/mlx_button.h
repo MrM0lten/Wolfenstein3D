@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MLX42.h"
 #include "MLX42_Int.h"
+#include "MLX42.h"
 
 
 typedef struct s_btn_list
@@ -99,6 +99,7 @@ int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
 void mlx_btn_bind_on_release(button_t *btn,void (*f)(void *));
 void mlx_btn_bind_on_click(button_t *btn,void (*f)(void *));
 void mlx_btn_bind_on_hover(button_t *btn,void (*f)(void *));
+
 
 
 #endif

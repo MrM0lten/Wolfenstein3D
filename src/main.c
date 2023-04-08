@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "MLX42.h"
+#include "MLX42_Int.h"
 #include "mlx_button.h"
 
 #define WIDTH 800
