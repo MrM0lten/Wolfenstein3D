@@ -22,6 +22,10 @@ static void delete_button(void* content)
     btn->img->pixels = btn->temp_pixel_arr;
     mlx_delete_image(btn->mlx,btn->img);
 
+    //delete text data
+    free(btn->text_data->literal_text);
+    mlx_delete_image(btn->mlx,btn->text_data->text);
+    free(btn->text_data);
 
     //clean up texture references
     mlx_delete_texture(btn->textures->tex_def);
@@ -31,6 +35,21 @@ static void delete_button(void* content)
     free(btn->btn_data);
     free(btn);
 
+}
+
+//scale the image based on width and height
+void btn_resize(button_t *btn,uint32_t width,uint32_t height)
+{
+    //scale every image to be the right size based on default //actually should probably be done in create button
+    if(check_texture_dim(btn->textures->tex_def,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_def,width, height);
+    if(check_texture_dim(btn->textures->tex_hlight,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_hlight,width, height);
+    if(check_texture_dim(btn->textures->tex_pressed,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_pressed,width, height);
+
+
+    mlx_resize_image(btn->img,width,height);
 }
 
 static void f_hover(button_t *btn,void* param)
@@ -176,18 +195,7 @@ void mlx_button_terminate(mlx_btn_t *btn)
     free(btn);
 }
 
-//scale the image based on width and height
-void btn_resize(button_t *btn,uint32_t width,uint32_t height)
-{
-    //scale every image to be the right size based on default //actually should probably be done in create button
-    if(check_texture_dim(btn->textures->tex_def,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_def,width, height);
-    if(check_texture_dim(btn->textures->tex_hlight,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_hlight,width, height);
-    if(check_texture_dim(btn->textures->tex_pressed,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_pressed,width, height);
 
-}
 
 //need to decide what happens if no texture data is given
 //probably makes sense to split button creating based on texture or not
@@ -201,7 +209,13 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
     ret->world_posx = -1;
     ret->world_posy = -1;
 
+    ret->text_data = malloc(sizeof(btn_txt_data_t));
+    ret->text_data->text = NULL;
+    ret->text_data->literal_text = NULL;
+    ret->text_data->alignment = TEXT_LEFT;
+
     ret->img = mlx_new_image(btn->mlx, width, height);
+
     if(text != NULL)
         ret->textures = text;
     else
@@ -221,12 +235,31 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
 
 int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y)
 {
-    btn->world_posx = x; //not put to the image yet
+    btn->world_posx = x;
     btn->world_posy = y;
-    return (mlx_image_to_window(mlx,btn->img,x,y));
+
+    //drawing the mlx window before the text for z height
+    uint32_t ret = mlx_image_to_window(mlx,btn->img,x,y);
+    if(btn->text_data->text != NULL)
+        mlx_set_btn_text(btn,btn->text_data->literal_text,btn->text_data->alignment);
+
+    return (ret);
 }
 
 
+void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment)
+{
+    if(text == NULL)
+        return;
+    char *temp = strdup(text);
+    if(btn->text_data->text != NULL)
+        mlx_delete_image(btn->mlx,btn->text_data->text);
+    if(btn->text_data->literal_text != NULL)
+        free(btn->text_data->literal_text);
+    btn->text_data->text = mlx_put_string(btn->mlx,temp,btn->world_posx,btn->world_posy);
+    btn->text_data->literal_text = strdup(temp);
+    free(temp);
+}
 
 //create a new node and add it to linked list
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)

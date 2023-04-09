@@ -8,12 +8,29 @@
 #include "MLX42.h"
 #include "button_internal.h"
 
+// The text alignment enum
+typedef enum text_alignment
+{
+	TEXT_LEFT = 0,
+	TEXT_CENTER,
+    TEXT_RIGHT,
+
+}	text_alignment_t;
+
+typedef struct btn_txt_data_s
+{
+    char *literal_text;
+    mlx_image_t* text;
+    text_alignment_t alignment;
+
+} btn_txt_data_t;
 
 /**
  * Button data.
  * It contains all information necessary to construct a button
  *
  * @param img The mlx image.
+ * @param text The text of the button represented as an image.
  * @param textures The textureset for different states(default,hover,highlight)
  * @param mlx The mlx instance reference.
  * @param world_posx The X position of the button within the window.
@@ -24,6 +41,7 @@
 typedef struct s_button
 {
     mlx_image_t* img;
+    btn_txt_data_t* text_data;
     btn_textures_t* textures;
     mlx_t *mlx;
     int32_t world_posx;
@@ -180,6 +198,10 @@ btn_textures_t *mlx_create_btn_textures_from_colors(uint32_t width, uint32_t hei
  * @param[in] y The y position within the screen.
  */
 int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
+
+
+
+void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment);
 
 #endif
 

@@ -50,14 +50,29 @@ int main()
 	button_t *t1 = mlx_create_button(btn,tex,300,100);
 	button_t *t2 = mlx_create_button(btn,NULL,80,32);
 
+
+	mlx_set_btn_text(t1,"hello",TEXT_CENTER);
+	//mlx_set_btn_text(t1,"hello123");
+
+	char str[] = "hi";
+	int length = sizeof(str) - 1;
+	printf("len = %i\n",length);
+	int x = 10;
+	int y = x*2;
+	mlx_image_t *img = mlx_put_string(mlx,str,200,00);
+	//mlx_resize_image(img,x *length,y); //stupid idea wont work
+	// mlx_new_image()
+
+
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
 
+	mlx_set_btn_text(t1,"helladsao",TEXT_CENTER);
 
 	btn_bind_on_click(t1, test,t1);
 	btn_bind_on_hover(t1, test_hover,t1);
 
-	//it works pog!!!
+
 	generic_cursor_hook(btn,test_cursor,btn);
     generic_mouse_hook(btn,test_mouse,btn);
 
