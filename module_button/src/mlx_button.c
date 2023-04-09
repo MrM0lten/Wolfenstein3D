@@ -52,6 +52,32 @@ void btn_resize(button_t *btn,uint32_t width,uint32_t height)
     mlx_resize_image(btn->img,width,height);
 }
 
+//note right doenst work yet
+mlx_image_t *find_text_pos(button_t* btn, char *text)
+{
+    int x;
+    int y;
+
+    switch (btn->text_data->alignment)
+    {
+    case TEXT_LEFT:
+        x = btn->world_posx;
+        y = btn->world_posy + btn->img->height/2 - 20/2;
+        break;
+    case TEXT_CENTER:
+        x = btn->world_posx + btn->img->width/2 - sizeof(text)*10/2;
+        y = btn->world_posy + btn->img->height/2 - 20/2;
+        break;
+    case TEXT_RIGHT:
+        x = btn->world_posx + btn->img->width - sizeof(text)*10;
+        y = btn->world_posy + btn->img->height/2 - 20/2;
+        break;
+    }
+
+    return (mlx_put_string(btn->mlx,text,x,y));
+}
+
+
 static void f_hover(button_t *btn,void* param)
 {
     btn->img->pixels = btn->textures->tex_hlight->pixels;
@@ -246,7 +272,6 @@ int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y)
     return (ret);
 }
 
-
 void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment)
 {
     if(text == NULL)
@@ -256,7 +281,7 @@ void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment
         mlx_delete_image(btn->mlx,btn->text_data->text);
     if(btn->text_data->literal_text != NULL)
         free(btn->text_data->literal_text);
-    btn->text_data->text = mlx_put_string(btn->mlx,temp,btn->world_posx,btn->world_posy);
+    btn->text_data->text = find_text_pos(btn,temp);
     btn->text_data->literal_text = strdup(temp);
     free(temp);
 }

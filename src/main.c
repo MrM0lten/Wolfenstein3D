@@ -67,7 +67,7 @@ int main()
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
 
-	mlx_set_btn_text(t1,"helladsao",TEXT_CENTER);
+	mlx_set_btn_text(t1,"helladsao",TEXT_RIGHT);
 
 	btn_bind_on_click(t1, test,t1);
 	btn_bind_on_hover(t1, test_hover,t1);
