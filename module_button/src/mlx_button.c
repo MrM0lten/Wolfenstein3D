@@ -176,6 +176,19 @@ void mlx_button_terminate(mlx_btn_t *btn)
     free(btn);
 }
 
+//scale the image based on width and height
+void btn_resize(button_t *btn,uint32_t width,uint32_t height)
+{
+    //scale every image to be the right size based on default //actually should probably be done in create button
+    if(check_texture_dim(btn->textures->tex_def,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_def,width, height);
+    if(check_texture_dim(btn->textures->tex_hlight,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_hlight,width, height);
+    if(check_texture_dim(btn->textures->tex_pressed,width, height) == 0)
+        mlx_resize_texture(btn->textures->tex_pressed,width, height);
+
+}
+
 //need to decide what happens if no texture data is given
 //probably makes sense to split button creating based on texture or not
 button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,uint32_t height)
@@ -213,19 +226,7 @@ int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y)
     return (mlx_image_to_window(mlx,btn->img,x,y));
 }
 
-//scale the image based on width and height
-void btn_resize(button_t *btn,uint32_t width,uint32_t height)
-{
 
-    //scale every image to be the right size based on default //actually should probably be done in create button
-    if(check_texture_dim(btn->textures->tex_def,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_def,width, height);
-    if(check_texture_dim(btn->textures->tex_hlight,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_hlight,width, height);
-    if(check_texture_dim(btn->textures->tex_pressed,width, height) == 0)
-        mlx_resize_texture(btn->textures->tex_pressed,width, height);
-
-}
 
 //create a new node and add it to linked list
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)

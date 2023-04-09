@@ -48,7 +48,7 @@ int main()
     btn_textures_t* tex = mlx_create_btn_textures(NULL,NULL,NULL);
 
 	button_t *t1 = mlx_create_button(btn,tex,300,100);
-	button_t *t2 = mlx_create_button(btn,NULL,100,60);
+	button_t *t2 = mlx_create_button(btn,NULL,80,32);
 
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
