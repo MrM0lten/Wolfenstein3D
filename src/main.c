@@ -45,11 +45,10 @@ int main()
 	if (!mlx)
 		printf("error\n");
 
-    btn_textures_t* tex = mlx_create_btn_textures("./resources/btn_blue_default.png","./resources/btn_blue_highlight.png","./resources/btn_blue_pressed.png");
+    btn_textures_t* tex = mlx_create_btn_textures(NULL,NULL,NULL);
 
-
-	button_t *t1 = mlx_create_button(btn,tex,300,100,0xFFFFFFFF);
-	button_t *t2 = mlx_create_button(btn,NULL,300,100,0xFFFFFFFF);
+	button_t *t1 = mlx_create_button(btn,tex,300,100);
+	button_t *t2 = mlx_create_button(btn,NULL,100,60);
 
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
