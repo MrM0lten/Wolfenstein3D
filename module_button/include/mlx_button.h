@@ -45,6 +45,7 @@ typedef struct btn_txt_data_s
  * @param world_posx The X position of the button within the window.
  * @param world_posy The Y position of the button within the window.
  * @param btn_data The struct containing information for function execution
+ * @param enabled The flag whether or not the button is active
  * @param temp_pixel_arr The temporary pixel array storage, that holds the default image pixel
  */
 typedef struct s_button
@@ -56,6 +57,7 @@ typedef struct s_button
     int32_t world_posx;
     int32_t world_posy;
     btn_data_t *btn_data;
+    bool enabled;
     uint8_t *temp_pixel_arr;
 } button_t;
 
@@ -232,5 +234,15 @@ void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment
  * @returns The newly created button Object.
  */
 button_t* btn_copy(mlx_btn_t* btn_obj,button_t* btn);
+
+/**
+ * Toggles the enabled state of a button.
+ * 0 = off
+ * 1 = on
+ *
+ * @param[in] btn The button to be toggled
+ * @param[in] enabled The new value
+ */
+void btn_set_status(button_t* btn,bool enabled);
 
 #endif

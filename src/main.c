@@ -55,12 +55,12 @@ int main()
 	btn_bind_on_click(t1, test,t1);
 	btn_bind_on_hover(t1, test_hover,t1);
     mlx_button_to_window(mlx,t1,100,100);
-
+	button_t *t3;
 	for(int i =0; i < 5;i++)
 	{
 		for(int j =0; j < 8;j++)
 		{
-			button_t *t3 = btn_copy(btn,t1);
+			t3 = btn_copy(btn,t1);
 			char *t = ft_itoa(i*8+j);
 			mlx_set_btn_text(t3,t,TEXT_CENTER);
 			free(t);
@@ -69,6 +69,9 @@ int main()
 			mlx_button_to_window(mlx,t3,j*100,i*100);
 		}
 	}
+
+	btn_set_status(t3,0);
+	btn_set_status(t3,1);
 
 	generic_cursor_hook(btn,test_cursor,btn);
     generic_mouse_hook(btn,test_mouse,btn);

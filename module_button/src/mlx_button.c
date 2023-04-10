@@ -178,10 +178,13 @@ static void btn_mouse_hook(mouse_key_t button, action_t action, modifier_key_t m
     while(curr != NULL)
     {
         node = (button_t *)curr->content;
-        if(action == MLX_PRESS && mouse_over_button(node, x, y))
-			f_click(node,param);
-		else if(action == MLX_RELEASE && mouse_over_button(node, x, y))
-			f_release(node,param);
+        if(node->enabled == 1)
+        {
+            if(action == MLX_PRESS && mouse_over_button(node, x, y))
+		    	f_click(node,param);
+		    else if(action == MLX_RELEASE && mouse_over_button(node, x, y))
+		    	f_release(node,param);
+        }
         curr = curr->next;
     }
 }
@@ -195,10 +198,13 @@ static void btn_cursor_hook(double xpos, double ypos, void* param)
     while(curr != NULL)
     {
         node = (button_t *)curr->content;
-        if(mouse_over_button(node, xpos, ypos))
-			f_hover(node,param);
-		else
-			f_hover_end(node,param);
+        if(node->enabled == 1)
+        {
+            if(mouse_over_button(node, xpos, ypos))
+		    	f_hover(node,param);
+		    else
+		    	f_hover_end(node,param);
+        }
         curr = curr->next;
     }
 }
@@ -267,6 +273,7 @@ button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,u
     else
         ret->textures = mlx_create_btn_textures(NULL,NULL,NULL);
 
+    ret->enabled = 1;
     btn_resize(ret,width,height);
     ret->temp_pixel_arr = ret->img->pixels;
     ret->img->pixels = ret->textures->tex_def->pixels;
@@ -338,9 +345,10 @@ button_t* btn_copy(mlx_btn_t* my_btn_lst,button_t* btn)
     new->btn_data->on_release = btn->btn_data->on_release;
     new->btn_data->param_on_release = btn->btn_data->param_on_release;
 
+    new->enabled = btn->enabled;
+
     new->temp_pixel_arr = new->img->pixels;
     new->img->pixels = new->textures->tex_def->pixels;
-
     btn_lstadd_back( &my_btn_lst->buttons,btn_lstnew(new));
 
     return new;
@@ -349,7 +357,18 @@ button_t* btn_copy(mlx_btn_t* my_btn_lst,button_t* btn)
 //allows you to enable or disable a button
 void btn_set_status(button_t* btn,bool enabled)
 {
-
+    if(enabled == 1)
+    {
+        btn->enabled = 1;
+        btn->img->instances[0].enabled = 1;
+        btn->text_data->text->instances[0].enabled = 1;
+    }
+    else if(enabled == 0)
+    {
+        btn->enabled = 0;
+        btn->img->instances[0].enabled = 0;
+        btn->text_data->text->instances[0].enabled = 0;
+    }
 }
 
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)
