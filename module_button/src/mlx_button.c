@@ -203,6 +203,19 @@ static void btn_cursor_hook(double xpos, double ypos, void* param)
     }
 }
 
+static mlx_texture_t* mlx_copy_texture(mlx_texture_t *old)
+{
+    mlx_texture_t* new = malloc(sizeof(mlx_texture_t));
+    new->width = old->width;
+    new->height = old->height;
+    new->bytes_per_pixel = old->bytes_per_pixel;
+    size_t bytes = sizeof(uint8_t)*old->width*old->height *old->bytes_per_pixel;
+    new->pixels = malloc(bytes);
+    memcpy(new->pixels,old->pixels,bytes);
+
+    return new;
+}
+
 
 // --------------- PUBLIC --------------//
 
@@ -288,9 +301,55 @@ void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment
         mlx_delete_image(btn->mlx,btn->text_data->text);
     if(btn->text_data->literal_text != NULL)
         free(btn->text_data->literal_text);
-    btn->text_data->text = find_text_pos(btn,temp);
     btn->text_data->literal_text = strdup(temp);
+    btn->text_data->text = find_text_pos(btn,temp);
     free(temp);
+}
+
+//creates a copy of an existing button without putting it to the window
+//useful if you want to create many buttons quickly
+button_t* btn_copy(mlx_btn_t* my_btn_lst,button_t* btn)
+{
+    button_t *new = malloc(sizeof(button_t));
+
+    new->mlx = btn->mlx;
+    new->img = mlx_new_image(btn->mlx, btn->img->width, btn->img->height);
+
+    new->text_data = malloc(sizeof(btn_txt_data_t));
+    new->text_data->literal_text = NULL;
+    new->text_data->text = NULL;
+    new->text_data->alignment = btn->text_data->alignment;
+
+    mlx_set_btn_text(new,btn->text_data->literal_text, btn->text_data->alignment);
+
+    new->textures = malloc(sizeof(btn_textures_t));
+    new->textures->tex_def = mlx_copy_texture(btn->textures->tex_def);
+    new->textures->tex_hlight = mlx_copy_texture(btn->textures->tex_hlight);
+    new->textures->tex_pressed = mlx_copy_texture(btn->textures->tex_pressed);
+
+    new->world_posx = btn->world_posx;
+    new->world_posy = btn->world_posy;
+
+    new->btn_data = malloc(sizeof(btn_data_t));
+    new->btn_data->on_hover = btn->btn_data->on_hover;
+    new->btn_data->param_on_hover = btn->btn_data->param_on_hover;
+    new->btn_data->on_click = btn->btn_data->on_click;
+    new->btn_data->param_on_click = btn->btn_data->param_on_click;
+    new->btn_data->on_release = btn->btn_data->on_release;
+    new->btn_data->param_on_release = btn->btn_data->param_on_release;
+
+    new->temp_pixel_arr = new->img->pixels;
+    new->img->pixels = new->textures->tex_def->pixels;
+
+    btn_lstadd_back( &my_btn_lst->buttons,btn_lstnew(new));
+
+    return new;
+}
+
+//allows you to enable or disable a button
+void btn_set_status(button_t* btn,bool enabled)
+{
+
 }
 
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)

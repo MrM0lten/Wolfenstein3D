@@ -8,12 +8,12 @@
 #include "MLX42.h"
 #include "button_internal.h"
 
-// The text alignment enum
+// An enum that gives options to display text at certain positions within a button
 typedef enum text_alignment
 {
-	TEXT_LEFT = 0,
-	TEXT_CENTER,
-    TEXT_RIGHT,
+	TEXT_LEFT = 0,  //left allignment
+	TEXT_CENTER,    //center allignment
+    TEXT_RIGHT,     //right allignment
 
 }	text_alignment_t;
 
@@ -221,18 +221,16 @@ int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
  */
 void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment);
 
-#endif
-
 
 /**
- * Callback function used to handle window resizing.
+ * Creates a deep copy of the bassed btn and returns a new button.
  *
- * WARNING: The function is called every frame during which the window is being
- * resized, be aware!
- * NOTE: In MacOS this function does nothing, you should use the bundles icon to set the dock bar icon.
+ * NOTE: Even previously functions will be copied. So be aware
  *
- * @param[in] width The new width of the window.
- * @param[in] height The new height of the window.
- * @param[in] param Additional parameter to pass on to the function.
- * @returns True or false if the key is down or not.
+ * @param[in] btn_obj The mlx btn instance.
+ * @param[in] btn The button to be copied
+ * @returns The newly created button Object.
  */
+button_t* btn_copy(mlx_btn_t* btn_obj,button_t* btn);
+
+#endif
