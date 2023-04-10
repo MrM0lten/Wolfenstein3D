@@ -17,6 +17,15 @@ typedef enum text_alignment
 
 }	text_alignment_t;
 
+/**
+ * optional Button text data.
+ * It contains all information necessary to construct and display text.
+ * A Text is displayed as an image itself on top of a button
+ *
+ * @param literal_text The literal string displayed on the button.
+ * @param text The text represented as an image.
+ * @param alignment The alignment within a button (LEFT,CENTER,RIGHT)
+ */
 typedef struct btn_txt_data_s
 {
     char *literal_text;
@@ -200,7 +209,16 @@ btn_textures_t *mlx_create_btn_textures_from_colors(uint32_t width, uint32_t hei
 int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
 
 
-
+/**
+ * Sets a text to be displayed on top of a button.
+ * It will automatically scale down the text if the button is too small.
+ *
+ * NOTE: The default font is 10x20p per character, text cannot wrap, and the smallest size is defined as 4x8p per char
+ *
+ * @param[in] btn The btn which's text to be set
+ * @param[in] text The literal text
+ * @param[in] alignment The alignment of the text within the button
+ */
 void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment);
 
 #endif

@@ -15,6 +15,7 @@ static btn_data_t *init_btn_data(void)
     return data;
 }
 
+//a button with a specific signature to be passed to a linked list to clear its content -> private
 static void delete_button(void* content)
 {
     button_t* btn = (button_t *)content;
@@ -52,29 +53,45 @@ void btn_resize(button_t *btn,uint32_t width,uint32_t height)
     mlx_resize_image(btn->img,width,height);
 }
 
-//note right doenst work yet
+
 mlx_image_t *find_text_pos(button_t* btn, char *text)
 {
     int x;
     int y;
+    int str_size;
+    mlx_image_t *ret;
+    int new_size_x = CHARX;
+    int new_size_y = CHARY;
 
+    str_size = strlen(text)*CHARX;
+    if(str_size > btn->img->width)
+    {
+        while(new_size_x > 4 && str_size > btn->img->width)
+        {
+            new_size_x -=2;
+            str_size = strlen(text)*new_size_x;
+        }
+        new_size_y = new_size_x *2;
+    }
     switch (btn->text_data->alignment)
     {
     case TEXT_LEFT:
         x = btn->world_posx;
-        y = btn->world_posy + btn->img->height/2 - 20/2;
+        y = btn->world_posy + btn->img->height/2 - new_size_y/2;
         break;
     case TEXT_CENTER:
-        x = btn->world_posx + btn->img->width/2 - sizeof(text)*10/2;
-        y = btn->world_posy + btn->img->height/2 - 20/2;
+        x = btn->world_posx + (btn->img->width/2) - (strlen(text)*new_size_x/2);
+        y = btn->world_posy + btn->img->height/2 - new_size_y/2;
         break;
     case TEXT_RIGHT:
-        x = btn->world_posx + btn->img->width - sizeof(text)*10;
-        y = btn->world_posy + btn->img->height/2 - 20/2;
+        x = btn->world_posx + btn->img->width - strlen(text)*new_size_x;
+        y = btn->world_posy + btn->img->height/2 - new_size_y/2;
         break;
     }
-
-    return (mlx_put_string(btn->mlx,text,x,y));
+    ret = mlx_put_string(btn->mlx,text,x,y);
+    if(new_size_x != CHARX)
+        mlx_resize_image(ret,new_size_x * strlen(text),new_size_y);
+    return (ret);
 }
 
 
@@ -132,7 +149,6 @@ static void default_mouse_hook(mouse_key_t button, action_t action, modifier_key
 
 }
 
-//calls all cursor hook events that ar part of the linked list
 static void default_cursor_hook(double xpos, double ypos, void* param)
 {
 	mlx_btn_t *btn = param;
@@ -148,7 +164,6 @@ static void default_cursor_hook(double xpos, double ypos, void* param)
 
 }
 
-//initial very specific button ho still need to work on the param versions what to actually pass in
 static void btn_mouse_hook(mouse_key_t button, action_t action, modifier_key_t mods, void* param)
 {
 	mlx_btn_t *btn = param;
@@ -191,8 +206,6 @@ static void btn_cursor_hook(double xpos, double ypos, void* param)
 
 // --------------- PUBLIC --------------//
 
-//creates a button object and binds to mouse_hook() and cursor_hook()
-//serves as a wrapper for all hook functions
 mlx_btn_t *mlx_button_init(mlx_t* mlx)
 {
     mlx_btn_t *btn = malloc(sizeof(mlx_btn_t));
@@ -201,18 +214,16 @@ mlx_btn_t *mlx_button_init(mlx_t* mlx)
     btn->mouse_func = NULL;
     btn->buttons = NULL;
 
-    //generic functions that should call all other functions respectively
     mlx_cursor_hook(mlx, default_cursor_hook, btn);
 	mlx_mouse_hook(mlx, default_mouse_hook,btn);
 
-    //first binding to allow for all kinds of events for buttons
     generic_cursor_hook(btn,btn_cursor_hook,btn);
     generic_mouse_hook(btn,btn_mouse_hook,btn);
 
     return (btn);
 }
 
-//cleans up everything related to buttons
+
 void mlx_button_terminate(mlx_btn_t *btn)
 {
     btn_lstclear(&btn->buttons,delete_button);
@@ -221,10 +232,6 @@ void mlx_button_terminate(mlx_btn_t *btn)
     free(btn);
 }
 
-
-
-//need to decide what happens if no texture data is given
-//probably makes sense to split button creating based on texture or not
 button_t* mlx_create_button(mlx_btn_t *btn,btn_textures_t *text,uint32_t width,uint32_t height)
 {
     button_t *ret;
@@ -264,7 +271,6 @@ int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y)
     btn->world_posx = x;
     btn->world_posy = y;
 
-    //drawing the mlx window before the text for z height
     uint32_t ret = mlx_image_to_window(mlx,btn->img,x,y);
     if(btn->text_data->text != NULL)
         mlx_set_btn_text(btn,btn->text_data->literal_text,btn->text_data->alignment);
@@ -277,6 +283,7 @@ void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment
     if(text == NULL)
         return;
     char *temp = strdup(text);
+    btn->text_data->alignment = alignment;
     if(btn->text_data->text != NULL)
         mlx_delete_image(btn->mlx,btn->text_data->text);
     if(btn->text_data->literal_text != NULL)
@@ -286,7 +293,6 @@ void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment
     free(temp);
 }
 
-//create a new node and add it to linked list
 void generic_cursor_hook(mlx_btn_t* btn, mlx_cursorfunc func, void* param)
 {
     cursorfunc_node_t *new = malloc(sizeof(cursorfunc_node_t));

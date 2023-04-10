@@ -51,23 +51,23 @@ int main()
 	button_t *t2 = mlx_create_button(btn,NULL,80,32);
 
 
-	mlx_set_btn_text(t1,"hello",TEXT_CENTER);
+	mlx_set_btn_text(t2,"hello abc 111 aaaaaaaa",TEXT_RIGHT);
 	//mlx_set_btn_text(t1,"hello123");
 
 	char str[] = "hi";
 	int length = sizeof(str) - 1;
 	printf("len = %i\n",length);
-	int x = 10;
+	int x = 100;
 	int y = x*2;
 	mlx_image_t *img = mlx_put_string(mlx,str,200,00);
-	//mlx_resize_image(img,x *length,y); //stupid idea wont work
+	mlx_resize_image(img,x *length,y);
 	// mlx_new_image()
 
 
     mlx_button_to_window(mlx,t1,400,300);
 	mlx_button_to_window(mlx,t2,400,200);
 
-	mlx_set_btn_text(t1,"helladsao",TEXT_RIGHT);
+	mlx_set_btn_text(t1,"hell0 my name is123131321312123123",TEXT_CENTER);
 
 	btn_bind_on_click(t1, test,t1);
 	btn_bind_on_hover(t1, test_hover,t1);
