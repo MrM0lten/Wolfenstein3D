@@ -8,27 +8,56 @@
 #include "MLX42.h"
 #include "button_internal.h"
 
+// An enum that gives options to display text at certain positions within a button
+typedef enum text_alignment
+{
+	TEXT_LEFT = 0,  //left allignment
+	TEXT_CENTER,    //center allignment
+    TEXT_RIGHT,     //right allignment
+
+}	text_alignment_t;
+
+/**
+ * optional Button text data.
+ * It contains all information necessary to construct and display text.
+ * A Text is displayed as an image itself on top of a button
+ *
+ * @param literal_text The literal string displayed on the button.
+ * @param text The text represented as an image.
+ * @param alignment The alignment within a button (LEFT,CENTER,RIGHT)
+ */
+typedef struct btn_txt_data_s
+{
+    char *literal_text;
+    mlx_image_t* text;
+    text_alignment_t alignment;
+
+} btn_txt_data_t;
 
 /**
  * Button data.
  * It contains all information necessary to construct a button
  *
  * @param img The mlx image.
+ * @param text The text of the button represented as an image.
  * @param textures The textureset for different states(default,hover,highlight)
  * @param mlx The mlx instance reference.
  * @param world_posx The X position of the button within the window.
  * @param world_posy The Y position of the button within the window.
  * @param btn_data The struct containing information for function execution
+ * @param enabled The flag whether or not the button is active
  * @param temp_pixel_arr The temporary pixel array storage, that holds the default image pixel
  */
 typedef struct s_button
 {
     mlx_image_t* img;
+    btn_txt_data_t* text_data;
     btn_textures_t* textures;
     mlx_t *mlx;
     int32_t world_posx;
     int32_t world_posy;
     btn_data_t *btn_data;
+    bool enabled;
     uint8_t *temp_pixel_arr;
 } button_t;
 
@@ -181,18 +210,39 @@ btn_textures_t *mlx_create_btn_textures_from_colors(uint32_t width, uint32_t hei
  */
 int32_t mlx_button_to_window(mlx_t *mlx, button_t* btn, int32_t x, int32_t y);
 
-#endif
+
+/**
+ * Sets a text to be displayed on top of a button.
+ * It will automatically scale down the text if the button is too small.
+ *
+ * NOTE: The default font is 10x20p per character, text cannot wrap, and the smallest size is defined as 4x8p per char
+ *
+ * @param[in] btn The btn which's text to be set
+ * @param[in] text The literal text
+ * @param[in] alignment The alignment of the text within the button
+ */
+void mlx_set_btn_text(button_t* btn, const char *text,text_alignment_t alignment);
 
 
 /**
- * Callback function used to handle window resizing.
+ * Creates a deep copy of the bassed btn and returns a new button.
  *
- * WARNING: The function is called every frame during which the window is being
- * resized, be aware!
- * NOTE: In MacOS this function does nothing, you should use the bundles icon to set the dock bar icon.
+ * NOTE: Even previously functions will be copied. So be aware
  *
- * @param[in] width The new width of the window.
- * @param[in] height The new height of the window.
- * @param[in] param Additional parameter to pass on to the function.
- * @returns True or false if the key is down or not.
+ * @param[in] btn_obj The mlx btn instance.
+ * @param[in] btn The button to be copied
+ * @returns The newly created button Object.
  */
+button_t* btn_copy(mlx_btn_t* btn_obj,button_t* btn);
+
+/**
+ * Toggles the enabled state of a button.
+ * 0 = off
+ * 1 = on
+ *
+ * @param[in] btn The button to be toggled
+ * @param[in] enabled The new value
+ */
+void btn_set_status(button_t* btn,bool enabled);
+
+#endif

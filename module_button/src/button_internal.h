@@ -8,6 +8,9 @@
 #include "MLX42_Int.h"
 #include "MLX42.h"
 
+#define CHARX 10
+#define CHARY 20
+
 typedef struct s_btn_list
 {
 	void			*content;

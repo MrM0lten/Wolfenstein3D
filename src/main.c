@@ -3,6 +3,8 @@
 #include "MLX42_Int.h"
 #include "mlx_button.h"
 
+#include "libft.h"
+
 #define WIDTH 800
 #define HEIGHT 800
 
@@ -29,13 +31,13 @@ void test(void *param)
 {
 	button_t *btn = param;
 
-	//printf("whwow  %i\n",btn->highl_col);
+	printf("teste %p\n",&param);
 }
 void test_hover(void *param)
 {
 	button_t *btn = param;
 
-	//printf("HOVER over %i\n",btn->highl_col);
+	//printf("HOVER over \n");
 }
 
 int main()
@@ -47,17 +49,30 @@ int main()
 
     btn_textures_t* tex = mlx_create_btn_textures(NULL,NULL,NULL);
 
-	button_t *t1 = mlx_create_button(btn,tex,300,100);
-	button_t *t2 = mlx_create_button(btn,NULL,80,32);
+	button_t *t1 = mlx_create_button(btn,tex,100,100);
 
-    mlx_button_to_window(mlx,t1,400,300);
-	mlx_button_to_window(mlx,t2,400,200);
-
-
+	mlx_set_btn_text(t1,"Wow",TEXT_CENTER);
 	btn_bind_on_click(t1, test,t1);
 	btn_bind_on_hover(t1, test_hover,t1);
+    mlx_button_to_window(mlx,t1,100,100);
+	button_t *t3;
+	for(int i =0; i < 5;i++)
+	{
+		for(int j =0; j < 8;j++)
+		{
+			t3 = btn_copy(btn,t1);
+			char *t = ft_itoa(i*8+j);
+			mlx_set_btn_text(t3,t,TEXT_CENTER);
+			free(t);
+			btn_bind_on_click(t1, test,t3);
+			btn_bind_on_hover(t1, test_hover,t3);
+			mlx_button_to_window(mlx,t3,j*100,i*100);
+		}
+	}
 
-	//it works pog!!!
+	btn_set_status(t3,0);
+	btn_set_status(t3,1);
+
 	generic_cursor_hook(btn,test_cursor,btn);
     generic_mouse_hook(btn,test_mouse,btn);
 
