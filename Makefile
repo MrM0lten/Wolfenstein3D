@@ -10,7 +10,7 @@ TARGET	:= wolfenstein
 
 # Dependencies
 LIB_DEPS := libbutton.a libft.a libmlx42.a libglfw.a
-LIB_DIRS := libft MLX42/build module_button
+LIB_DIRS := libft MLX42/build Mlx_Module_Button
 
 # Includes
 INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) $(wildcard */*/*/*/)
@@ -34,9 +34,9 @@ all: $(TARGET)
 
 # Linker
 $(TARGET): $(OBJ)
-	@$(MAKE) -C ./libft
+	$(MAKE) -C ./libft
 	@printf "Creating libft: $(GREEN)OK!\n$(DEF_COLOR)"
-	@$(MAKE) -C ./module_button
+	$(MAKE) -C ./Mlx_Module_Button
 	@printf "Creating libbutton: $(GREEN)OK!\n$(DEF_COLOR)"
 	@$(CC) $(CFLAGS) $^ $(E_LIB_DIRS) $(E_LIB_DEPS) -o $@
 	@printf "Linking: $(GREEN)OK!\n$(DEF_COLOR)"
@@ -52,13 +52,13 @@ $(BLD_DIR)/%.o: %.c
 # Commands
 fclean:
 	@$(MAKE) fclean -C ./libft
-	@$(MAKE) fclean -C ./module_button
+	@if [ -d "./Mlx_Module_Button" ]; then $(MAKE) fclean -C ./Mlx_Module_Button; fi
 	@rm -rf $(BLD_DIR) $(TARGET) $(BONUST)
 	@printf "$(BLUE)F_Cleaned!\n$(DEF_COLOR)"
 
 clean:
 	@$(MAKE) clean -C ./libft
-	@$(MAKE) clean -C ./module_button
+	@if [ -d "./Mlx_Module_Button" ]; then $(MAKE) clean -C ./Mlx_Module_Button; fi
 	@rm -rf $(BLD_DIR)
 	@printf "$(BLUE)Cleaned!\n$(DEF_COLOR)"
 
@@ -66,6 +66,7 @@ re: fclean all
 
 delete_mlx:
 	rm -rf MLX42
+	rm -rf Mlx_Module_Button
 
 run: $(TARGET)
 	make && ./$(TARGET)
@@ -75,11 +76,15 @@ print-%:
 
 build_mlx:
 	@if ! [ -d "./MLX42" ]; then make install_mlx; fi
+	@if ! [ -d "./Mlx_Module_Button" ]; then make install_mlx_button; fi
 
 install_mlx:
 	git clone https://github.com/codam-coding-college/MLX42.git
 	cd MLX42; cmake -B build; cmake --build build -j4
 
+install_mlx_button:
+	git clone https://github.com/MrM0lten/Mlx_Module_Button.git
+	cd Mlx_Module_Button; $(MAKE)
 
 # Colors
 DEF_COLOR	=	\033[0;39m
