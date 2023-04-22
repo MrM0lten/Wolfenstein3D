@@ -30,20 +30,21 @@ E_LIB_DIRS	:= $(foreach dir, $(LIB_DIRS), $(addprefix -L./, $(dir)))
 E_LIB_DEPS	:= $(foreach lib, $(LIB_DEPS), $(addprefix -l, $(subst .a, , $(subst lib, , $(lib)))))
 
 # =======BUILD=======
-all: $(TARGET)
+all:
+	@$(MAKE) build_mlx
+	@$(MAKE) compile
+
+compile: $(TARGET)
 
 # Linker
 $(TARGET): $(OBJ)
 	$(MAKE) -C ./libft
 	@printf "Creating libft: $(GREEN)OK!\n$(DEF_COLOR)"
-	$(MAKE) -C ./Mlx_Module_Button
-	@printf "Creating libbutton: $(GREEN)OK!\n$(DEF_COLOR)"
 	@$(CC) $(CFLAGS) $^ $(E_LIB_DIRS) $(E_LIB_DEPS) -o $@
 	@printf "Linking: $(GREEN)OK!\n$(DEF_COLOR)"
 
 # Compiler
 $(BLD_DIR)/%.o: %.c
-	@make build_mlx
 	@mkdir -p $(BLD_DIR)
 	@mkdir -p $(@D)
 	@$(CC) -c $(CFLAGS) $< $(E_INC_DIRS) -o $@
