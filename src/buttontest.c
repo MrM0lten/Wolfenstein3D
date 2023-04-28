@@ -77,7 +77,7 @@ void ft_hook1(void* param)
 		new->instances[0].x += 5;
 }
 
-int main()
+/* int main()
 {
 	mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
@@ -121,3 +121,4 @@ int main()
 	mlx_terminate(mlx);
 	return (0);
 }
+ */

@@ -25,6 +25,19 @@ float pa = 2*PI;
 mlx_image_t* image;
 mlx_image_t* image2;
 
+	int x = 8;
+	int y = 8;
+	int arr[] = {
+	1,1,1,1,1,1,1,1,
+	1,0,1,0,0,0,0,1,
+	1,0,1,0,0,0,0,1,
+	1,0,0,0,0,0,0,1,
+	1,0,0,0,0,0,0,1,
+	1,0,0,0,0,1,0,1,
+	1,0,0,0,0,0,0,1,
+	1,1,1,1,1,1,1,1,
+};
+
 //some frame counting
 int nbFrames = 0;
 #define DELAYPROCESS 100000000
@@ -120,8 +133,11 @@ void ft_hook(void* param)
 		pa -=0.1;
 		if(pa < 0)
 			pa += 2 * PI;
+
 		pdx = cos(pa) * 5;
 		pdy = sin(pa) * 5;
+
+
 
 
 		//p_x -= 1;
@@ -133,7 +149,7 @@ void ft_hook(void* param)
 		pa +=0.1;
 		if(pa > 2 * PI)
 			pa -= 2 * PI;
-		pdx = cos(pa) * 5;
+		pdx = cos(2*PI - pa) * 5;
 		pdy = sin(pa) * 5;
 
 
@@ -159,6 +175,8 @@ void ft_hook(void* param)
 
 	}
 	//printf("%f\n",pa);
+	printf("Player pos [%f][%f]\n",p_x,p_y);
+	printf("Player angle [%f]\n",pa);
 }
 
 
@@ -166,6 +184,8 @@ int32_t ft_pixel(int32_t r, int32_t g, int32_t b, int32_t a)
 {
     return (r << 24 | g << 16 | b << 8 | a);
 }
+
+
 
 //draws a rectangle to an imagine based on some dimensions
 void draw_rect(mlx_image_t* image, int x, int y, int val)
@@ -193,25 +213,119 @@ void draw_rect(mlx_image_t* image, int x, int y, int val)
 	}
 	for (int i = y_max-SQ_DIM; i < y_max; i++)
 			mlx_put_pixel(image, x_max-1, i, color);
+
+
+
+
+}
+
+/* typedef struct point
+{
+	float x;
+	float y;
+}point;
+
+// dir == 0 when up dir == 1 when down
+int is_collision(point *p, int dir)
+{
+
+} */
+
+// 3|4
+// 2|1
+void drawRay()
+{
+	double ra=pa;
+	float ry = 0;
+	float rx = 0;
+	int it = 0;
+	float x_offset = 0;
+	float y_offset = 64;
+	x_offset = (64)/tan(ra);
+	for (int i = 0; i < 1; i++)
+	{
+		//horizontal check
+		if(ra > PI)
+		{
+			while (p_y > ry + 64 )
+				ry += 64;
+			if (ra > 1.5 * PI)// quadrant 4
+			{
+				rx = (p_y - ry)/tan(2*PI - ra);
+				rx = p_x + rx;
+				x_offset = (64)/tan(2*PI - ra);
+			}
+			else // quadrant 3
+			{
+				rx = (p_y - ry)/tan(ra - PI);
+				rx = p_x - rx;
+				x_offset = (64)/tan(ra - PI);
+			}
+		}
+		else
+		{
+			while (p_y > ry)
+				ry += 64;
+			if(ra > PI/2) // quadrant 2
+			{
+				printf("p_y and ry [%f][%f]\n",p_y,ry);
+				rx = (ry - p_y)/tan(PI - ra);
+				rx = p_x - rx;
+				x_offset = (64)/tan(PI - ra);
+			}
+			else // quadrant 1
+			{
+				rx = (ry - p_y)/tan(ra);
+				rx = p_x + rx;
+				x_offset = (64)/tan(ra);
+			}
+		}
+
+ 		for (int i = 0; i < 8; i++)
+		{
+			printf("x_offset = %f\n", x_offset);
+			int yG = ry/64;
+			int xG = rx/64;
+			if (yG < 8 && xG < 8 && ra > PI) {
+				yG--;
+				if (arr[yG * 8 + xG]) {
+					printf("Is wall!\n");
+					break;
+				}
+				yG++;
+			}
+			else if (yG < 8 && xG < 8) {
+				if (arr[yG * 8 + xG]) {
+					printf("Is wall!\n");
+					break;
+				}
+			}
+			if (ra < 1.5 * PI && ra > PI/2)
+				rx = rx - x_offset;
+			else
+				rx = rx + x_offset;
+			if (ra > PI)
+				ry = ry - y_offset;
+			else
+				ry = ry + y_offset;
+		}
+
+			// printf("p_y and ry [%f][%f]\n",p_y,ry);
+
+
+
+
+		printf("next horizontal line [%f][%f]\n",rx,ry);
+
+		drawline(p_x,p_y,rx,ry,0xFF00FFFF);
+	}
+
 }
 
 void draw_minimap(void* param)
 {
 	mlx_t* mlx = param;
 
-	int x = 8;
-	int y = 8;
-	int total = x*y;
-	int arr[] = {
-	1,1,1,1,1,1,1,1,
-	1,0,1,0,0,0,0,1,
-	1,0,1,0,0,0,0,1,
-	1,0,0,0,0,0,0,1,
-	1,0,0,0,0,0,0,1,
-	1,0,0,0,0,1,0,1,
-	1,0,0,0,0,0,0,1,
-	1,1,1,1,1,1,1,1,
-};
 
 	for (int i = 0; i < y; i++)
 	{
@@ -230,9 +344,11 @@ void draw_minimap(void* param)
 	float line_mult = 5;
 	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
 
+	drawRay();
+
 }
 
-int definitely_not_main()
+int main()
 {
 
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
