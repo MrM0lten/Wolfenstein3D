@@ -17,7 +17,7 @@
 #define PI 3.1415926
 
 float p_x = 256.f;
-float p_y = 256.f;
+float p_y = 300.f;
 float pdx = 0;
 float pdy = 0;
 float pa = 2*PI;
@@ -229,9 +229,9 @@ typedef struct point_s
 // 3|4
 // 2|1
 
-point gethorizontalRay()
+point gethorizontalRay(double ra)
 {
-double ra=pa;
+	//double ra=pa;
 	float ry = 0;
 	float rx = 0;
 	int it = 0;
@@ -282,7 +282,7 @@ double ra=pa;
 			printf("x_offset = %f\n", x_offset);
 			int yG = ry/64;
 			int xG = rx/64;
-			if (yG < 8 && xG < 8 && ra > PI) {
+			if ( yG >= 0 && xG >=0 && yG < 8 && xG < 8 && ra > PI) {
 				yG--;
 				if (arr[yG * 8 + xG]) {
 					printf("Is wall!\n");
@@ -290,7 +290,7 @@ double ra=pa;
 				}
 				yG++;
 			}
-			else if (yG < 8 && xG < 8) {
+			else if (yG < 8 && xG < 8 && yG >= 0 && xG >=0) {
 				if (arr[yG * 8 + xG]) {
 					printf("Is wall!\n");
 					break;
@@ -313,9 +313,9 @@ double ra=pa;
 	return s;
 }
 
-point getverticalRay()
+point getverticalRay(double ra)
 {
-	double ra=pa;
+	//double ra=pa;
 	float ry = 0;
 	float rx = 0;
 	int it = 0;
@@ -372,7 +372,7 @@ point getverticalRay()
 			int xG = rx/64;
 			printf(" before check xG [%d] yG [%d]!\n",xG,yG);
 
-			if (yG < 8 && xG < 8 && ra > PI/2 && ra < 1.5 * PI) {
+			if (yG >= 0 && xG >= 0 && yG < 8 && xG < 8 && ra > PI/2 && ra < 1.5 * PI) {
 				printf("Checking left wall\n");
 				xG--;
 				if (arr[yG * 8 + xG]) {
@@ -380,7 +380,7 @@ point getverticalRay()
 					break;
 				}
 			}
-			else if (yG < 8 && xG < 8) {
+			else if (yG >= 0 && xG >= 0 && yG < 8 && xG < 8) {
 				printf("Checking right wall\n");
 				if (arr[yG * 8 + xG]) {
 					printf("RIGHT xG [%d] yG [%d]!\n",xG,yG);
@@ -404,20 +404,35 @@ point getverticalRay()
 	return s;
 }
 
+double dist2(float x1, float y1, float x2, float y2)
+{
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    return sqrt(dx*dx + dy*dy);
+}
+
 
 void drawRay()
 {
-	point hor = gethorizontalRay();
-	point vert = getverticalRay();
-	double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
-	double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
+	double d = 2* PI;
+	int val = 100;
+	for (int i = 0; i < val; i++)
+	{
+		point hor = gethorizontalRay(pa-d);
+		point vert = getverticalRay(pa-d);
+		/* code */
+		// double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
+		// double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
+		double len_hor = dist2(hor.x,hor.y,p_x,p_y);
+		double len_vert = dist2(vert.x,vert.y,p_x,p_y);
+		if(len_hor < len_vert)
+			drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
+		else
+			drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
+		d -= 2*PI/val;
+	}
 
-	//drawline(p_x,p_y,vert.x,vert.y,0xFF00FFFF);
 
-	if(len_hor < len_vert)
-		drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
-	else
-		drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
 
 /* 	printf("len hor [%f]len vert [%f]\n",len_hor,len_vert);
 
