@@ -219,23 +219,19 @@ void draw_rect(mlx_image_t* image, int x, int y, int val)
 
 }
 
-/* typedef struct point
+typedef struct point_s
 {
 	float x;
 	float y;
 }point;
 
-// dir == 0 when up dir == 1 when down
-int is_collision(point *p, int dir)
-{
-
-} */
 
 // 3|4
 // 2|1
-void drawRay()
+
+point gethorizontalRay()
 {
-	double ra=pa;
+double ra=pa;
 	float ry = 0;
 	float rx = 0;
 	int it = 0;
@@ -312,13 +308,123 @@ void drawRay()
 
 			// printf("p_y and ry [%f][%f]\n",p_y,ry);
 
-
-
-
-		printf("next horizontal line [%f][%f]\n",rx,ry);
-
-		drawline(p_x,p_y,rx,ry,0xFF00FFFF);
 	}
+		point s ={rx,ry};
+	return s;
+}
+
+point getverticalRay()
+{
+	double ra=pa;
+	float ry = 0;
+	float rx = 0;
+	int it = 0;
+	float x_offset = 64;
+	float y_offset = 0;
+	for (int i = 0; i < 1; i++)
+	{
+		//horizontal check
+		if(ra > PI/2 && ra < 1.5*PI)
+		{
+			while (p_x > rx +64)
+				rx += 64;
+
+			printf("rx = %f\n",rx);
+			if (ra > PI)// quadrant 3
+			{
+				printf("in quadrant 3\n");
+				printf("ry = %f, py = %f\n",ry,p_y);
+				ry = tan(ra - PI) * (p_x - rx);
+				ry = p_y - ry;
+				y_offset = (64) * tan(ra - PI);
+			}
+			else // quadrant 2
+			{
+				ry = tan(PI- ra) * (p_x - rx);
+				ry = p_y + ry;
+				y_offset = (64) * tan(PI - ra);
+			}
+		}
+		else
+		{
+			while (p_x > rx)
+				rx += 64;
+			if (ra > PI)// quadrant 4
+			{
+				ry = tan(2*PI - ra) * (rx - p_x);
+				ry = p_y - ry;
+				y_offset = (64) * tan(2*PI -ra);
+			}
+			else // quadrant 1
+			{
+				ry = tan(ra) * (rx - p_x);
+				ry = p_y + ry;
+				y_offset = (64) * tan(ra);
+			}
+		}
+
+ 		for (int i = 0; i < 8; i++)
+		{
+			printf("--------iteration [%i]--------------\n",i);
+			printf("x_offset = %f\n", x_offset);
+			printf("rx in iter [%f] ry in iter[%f]!\n",rx,ry);
+			int yG = ry/64;
+			int xG = rx/64;
+			printf(" before check xG [%d] yG [%d]!\n",xG,yG);
+
+			if (yG < 8 && xG < 8 && ra > PI/2 && ra < 1.5 * PI) {
+				printf("Checking left wall\n");
+				xG--;
+				if (arr[yG * 8 + xG]) {
+					printf("LEFT xG [%d] yG [%d]!\n",xG,yG);
+					break;
+				}
+			}
+			else if (yG < 8 && xG < 8) {
+				printf("Checking right wall\n");
+				if (arr[yG * 8 + xG]) {
+					printf("RIGHT xG [%d] yG [%d]!\n",xG,yG);
+					break;
+				}
+			}
+			if (ra < 1.5 * PI && ra > PI/2)
+				rx = rx - x_offset;
+			else
+				rx = rx + x_offset;
+			if (ra > PI)
+				ry = ry - y_offset;
+			else
+				ry = ry + y_offset;
+		}
+
+		printf("rx and ry [%f][%f]\n",rx,ry);
+
+	}
+		point s ={rx,ry};
+	return s;
+}
+
+
+void drawRay()
+{
+	point hor = gethorizontalRay();
+	point vert = getverticalRay();
+	double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
+	double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
+
+	//drawline(p_x,p_y,vert.x,vert.y,0xFF00FFFF);
+
+	if(len_hor < len_vert)
+		drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
+	else
+		drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
+
+/* 	printf("len hor [%f]len vert [%f]\n",len_hor,len_vert);
+
+		printf("next vertical line [%f][%f]\n",vert.x,vert.y); */
+
+	//	drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
+
 
 }
 
