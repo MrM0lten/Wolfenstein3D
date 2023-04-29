@@ -237,10 +237,12 @@ double dist2(float x1, float y1, float x2, float y2)
 
 int is_wall(double rx, double ry)
 {
+	if (rx < 0 || ry < 0)
+		return 0;
 	int mx = (int)rx>>6;
 	int my = (int)ry>>6;
 	int mp = my * MAP_WIDTH + mx;
-	if (mp < MAP_DIM && arr[mp] == 1) {
+	if (mp >= 0 && mp < MAP_DIM && arr[mp] == 1) {
 		return 1;
 	}
 	return 0;
@@ -281,7 +283,9 @@ point raycast_ver(double radian)
 		xo = 64, yo = tan(radian) * xo;
 		printf("rx,ry [%f][%f]\n",rx,ry);
 	}
-	if (radian==PI/2 || radian==PI*1.5) {return (point){px,py};}
+	if (radian==PI/2 || radian==PI*1.5) {
+		printf("looking up\n");
+		return (point){px,py};}
 	for (int i=0; i<8 && !is_wall(rx, ry); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
@@ -293,11 +297,16 @@ point raycast_ver(double radian)
 // py = 166 166/64
 point raycast(double radian)
 {
+	printf("in rayacst\n");
 	point hray = raycast_hor(radian);
 	point vray = raycast_ver(radian);
 	double len_hor = vector2d_len(hray.x-p_x,hray.y- p_y);
 	double len_vert = vector2d_len(vray.x -p_x,vray.y -p_y);
 	printf("horlen = %f verlen = %f\n", len_hor, len_vert);
+	if (len_vert == 0)
+		return hray;
+	if (len_hor == 0)
+		return vray;
 	if (len_hor > len_vert)
 		return vray;
 	else
@@ -317,6 +326,11 @@ void raycaster(int nb_rays, double fov)
 	double start_radian = pa-fov/2;
 	double step = fov / (nb_rays -1);
 	for (int i=0; i < nb_rays; i++) {
+		if (start_radian > 2*PI)
+			start_radian -= 2*PI;
+		else if (start_radian < 0)
+			start_radian += 2*PI;
+		printf("angle for ray = %f\n", start_radian);
 		draw_ray(raycast(start_radian));
 		start_radian += step;
 	}
@@ -377,7 +391,7 @@ void draw_minimap(void* param)
 	float line_mult = 5;
 	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
 
-	raycaster(1, PI);
+	raycaster(512, PI/4);
 
 }
 
