@@ -107,31 +107,29 @@ double	vector2d_len(double x, double y)
 
 void	drawline(int ax,int ay, int bx,int by, int color)
 {
-	double	len;
-	double	i;
-	double	t;
-	double	tempx;
-	double	tempy;
-	double	valx;
-	double	valy;
+	int dx = bx - ax;
+	int dy = by - ay;
+	double x;
+	double y;
+	double xinc;
+	double yinc;
+	int steps;
 
-	if (ax >= IMG_WIDTH || ax < 0 || ay >= IMG_HEIGHT || ay < 0
-		|| bx >= IMG_WIDTH || bx < 0 || by >= IMG_HEIGHT || by < 0)
-		return ;
-	len = vector2d_len(ax -bx,ay-by);
-	i = 0;
-	while (i < len)
+	if (abs(dx) > abs(dy))
+		steps = abs(dx);
+	else
+		steps = abs(dy);
+	xinc = (double)dx / steps;
+	yinc = (double)dy / steps;
+	x = ax;
+	y = ay;
+	while (steps--)
 	{
-		t = i / len;
-		tempx = ax-bx;
-		tempy = ay-by;
-		valx = (1 - t) * tempx + bx;
-		valy = (1 - t) * tempy + by;
-		mlx_put_pixel(image, valx, valy, color);
-		i += 1;
+		mlx_put_pixel(image, (int)x, (int)y, color);
+		x = x + xinc;
+		y = y + yinc;
 	}
 }
-
 
 //adjusts player locations
 void ft_hook(void* param)
