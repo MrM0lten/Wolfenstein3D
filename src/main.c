@@ -18,6 +18,14 @@
 #define SQ_DIM MAP_DIM
 
 #define PI 3.1415926
+#define RAYS 512
+
+#define FOV PI/2
+#define HALF_FOV FOV/2
+#define HALF_SCREEN IMG_WIDTH/2
+
+float dist_to_proj;
+
 
 float p_x = 256.f;
 float p_y = 300.f;
@@ -40,6 +48,8 @@ mlx_image_t* image2;
 	1,0,0,0,0,0,0,1,
 	1,1,1,1,1,1,1,1,
 };
+double ray_data[RAYS];
+
 
 //some frame counting
 int nbFrames = 0;
@@ -105,8 +115,8 @@ void	drawline(int ax,int ay, int bx,int by, int color)
 	double	valx;
 	double	valy;
 
-	if (ax >= IMG_WIDTH/2 || ax <= 0 || ay >= IMG_HEIGHT || ay <= 0
-		|| bx >= IMG_WIDTH/2 || bx <= 0 || by >= IMG_HEIGHT || by <= 0)
+	if (ax >= IMG_WIDTH || ax < 0 || ay >= IMG_HEIGHT || ay < 0
+		|| bx >= IMG_WIDTH || bx < 0 || by >= IMG_HEIGHT || by < 0)
 		return ;
 	len = vector2d_len(ax -bx,ay-by);
 	i = 0;
@@ -178,8 +188,8 @@ void ft_hook(void* param)
 
 	}
 	//printf("%f\n",pa);
-	printf("Player pos [%f][%f]\n",p_x,p_y);
-	printf("Player angle [%f]\n",pa);
+	//printf("Player pos [%f][%f]\n",p_x,p_y);
+	//printf("Player angle [%f]\n",pa);
 }
 
 
@@ -281,11 +291,9 @@ point raycast_ver(double radian)
 		rx = (((int)px>>6)<<6) + 64;
 		ry = py - (tan(radian) * (px-rx));
 		xo = 64, yo = tan(radian) * xo;
-		printf("rx,ry [%f][%f]\n",rx,ry);
+		//printf("rx,ry [%f][%f]\n",rx,ry);
 	}
-	if (radian==PI/2 || radian==PI*1.5) {
-		printf("looking up\n");
-		return (point){px,py};}
+	if (radian==PI/2 || radian==PI*1.5) {return (point){px,py};}
 	for (int i=0; i<8 && !is_wall(rx, ry); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
@@ -297,12 +305,12 @@ point raycast_ver(double radian)
 // py = 166 166/64
 point raycast(double radian)
 {
-	printf("in rayacst\n");
+	//printf("in rayacst\n");
 	point hray = raycast_hor(radian);
 	point vray = raycast_ver(radian);
 	double len_hor = vector2d_len(hray.x-p_x,hray.y- p_y);
 	double len_vert = vector2d_len(vray.x -p_x,vray.y -p_y);
-	printf("horlen = %f verlen = %f\n", len_hor, len_vert);
+	//printf("horlen = %f verlen = %f\n", len_hor, len_vert);
 	if (len_vert == 0)
 		return hray;
 	if (len_hor == 0)
@@ -313,11 +321,11 @@ point raycast(double radian)
 		return hray;
 }
 
-void draw_ray(point ray) {
+inline void draw_ray(point ray) {
 	drawline(p_x,p_y,ray.x,ray.y,0xFF00FFFF);
 }
 
-void raycaster(int nb_rays, double fov)
+void raycaster(int nb_rays, double fov,double *arr)
 {
 	if (nb_rays == 1) {
 		draw_ray(raycast(pa));
@@ -330,8 +338,21 @@ void raycaster(int nb_rays, double fov)
 			start_radian -= 2*PI;
 		else if (start_radian < 0)
 			start_radian += 2*PI;
-		printf("angle for ray = %f\n", start_radian);
-		draw_ray(raycast(start_radian));
+		//printf("angle for ray = %f\n", start_radian);
+		point p = raycast(start_radian);
+		draw_ray(p);
+		//arr[i] = vector2d_len(p.x - p_x, p.y - p_y);
+		double temp = pa - start_radian;
+		if(temp > 2*PI)
+			temp -= 2*PI;
+		else if(temp < 0)
+			temp += 2*PI;
+
+		arr[i] = (64 * dist_to_proj)/(vector2d_len(p.x - p_x, p.y - p_y)*cos(temp));
+
+		
+		if(arr[i] > HALF_SCREEN)
+			arr[i] = HALF_SCREEN;
 		start_radian += step;
 	}
 }
@@ -369,10 +390,42 @@ void drawRay()
 
 }
 
+void print_raydata()
+{
+	printf("-----------------PRINTING RAY DATA---------\n");
+	for (int i = 0; i < RAYS; i++)
+	{
+		printf("Ray [%i] val = [%f]\n",i,ray_data[i]);
+	}
+	
+}
+void draw_3dView()
+{
+	// refresh screen on right side
+	for (int i = 512; i < 1024; i++)
+	{
+		for (int j = 0; j < 512; j++)
+		{
+			mlx_put_pixel(image,i,j,0x000000FF);
+		}
+		
+	}
+	
+
+	for (int i = 0; i < RAYS; i++)
+	{
+		printf("yes\n");
+		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i])/2),(int)(i+HALF_SCREEN),
+		(int)((IMG_HEIGHT+ray_data[i])/2),0x00FFFFFF);
+		printf("drawline from [%d][%d] to [%d][%d]\n",(int)(i+HALF_SCREEN),(int)(IMG_HEIGHT- ray_data[i]/2)
+		,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i])/2));
+	}
+	
+}
+
 void draw_minimap(void* param)
 {
 	mlx_t* mlx = param;
-
 
 	for (int i = 0; i < y; i++)
 	{
@@ -391,18 +444,20 @@ void draw_minimap(void* param)
 	float line_mult = 5;
 	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
 
-	raycaster(512, PI/4);
+	raycaster(RAYS, FOV, ray_data);
+	print_raydata();
 
+	draw_3dView();
 }
 
 int main()
 {
-
+	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
 		printf("error\n");
 
-	image = mlx_new_image(mlx, IMG_WIDTH / 2, IMG_HEIGHT);
+	image = mlx_new_image(mlx, IMG_WIDTH, IMG_HEIGHT);
 
 	lastTime = get_time();
 	mlx_loop_hook(mlx, draw_minimap, mlx);
