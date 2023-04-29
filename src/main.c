@@ -12,7 +12,10 @@
 
 #define IMG_WIDTH 1024
 #define IMG_HEIGHT 512
-#define SQ_DIM 64
+#define MAP_HEIGHT 8
+#define MAP_WIDTH 8
+#define MAP_DIM MAP_HEIGHT * MAP_WIDTH
+#define SQ_DIM MAP_DIM
 
 #define PI 3.1415926
 
@@ -225,185 +228,6 @@ typedef struct point_s
 	float y;
 }point;
 
-
-// 3|4
-// 2|1
-
-point gethorizontalRay(double ra)
-{
-	//double ra=pa;
-	float ry = 0;
-	float rx = 0;
-	int it = 0;
-	float x_offset = 0;
-	float y_offset = 64;
-	x_offset = (64)/tan(ra);
-	for (int i = 0; i < 1; i++)
-	{
-		//horizontal check
-		if(ra > PI)
-		{
-			while (p_y > ry + 64 )
-				ry += 64;
-			if (ra > 1.5 * PI)// quadrant 4
-			{
-				rx = (p_y - ry)/tan(2*PI - ra);
-				rx = p_x + rx;
-				x_offset = (64)/tan(2*PI - ra);
-			}
-			else // quadrant 3
-			{
-				rx = (p_y - ry)/tan(ra - PI);
-				rx = p_x - rx;
-				x_offset = (64)/tan(ra - PI);
-			}
-		}
-		else
-		{
-			while (p_y > ry)
-				ry += 64;
-			if(ra > PI/2) // quadrant 2
-			{
-				printf("p_y and ry [%f][%f]\n",p_y,ry);
-				rx = (ry - p_y)/tan(PI - ra);
-				rx = p_x - rx;
-				x_offset = (64)/tan(PI - ra);
-			}
-			else // quadrant 1
-			{
-				rx = (ry - p_y)/tan(ra);
-				rx = p_x + rx;
-				x_offset = (64)/tan(ra);
-			}
-		}
-
- 		for (int i = 0; i < 8; i++)
-		{
-			printf("x_offset = %f\n", x_offset);
-			int yG = ry/64;
-			int xG = rx/64;
-			if ( yG >= 0 && xG >=0 && yG < 8 && xG < 8 && ra > PI) {
-				yG--;
-				if (arr[yG * 8 + xG]) {
-					printf("Is wall!\n");
-					break;
-				}
-				yG++;
-			}
-			else if (yG < 8 && xG < 8 && yG >= 0 && xG >=0) {
-				if (arr[yG * 8 + xG]) {
-					printf("Is wall!\n");
-					break;
-				}
-			}
-			if (ra < 1.5 * PI && ra > PI/2)
-				rx = rx - x_offset;
-			else
-				rx = rx + x_offset;
-			if (ra > PI)
-				ry = ry - y_offset;
-			else
-				ry = ry + y_offset;
-		}
-
-			// printf("p_y and ry [%f][%f]\n",p_y,ry);
-
-	}
-		point s ={rx,ry};
-	return s;
-}
-
-point getverticalRay(double ra)
-{
-	//double ra=pa;
-	float ry = 0;
-	float rx = 0;
-	int it = 0;
-	float x_offset = 64;
-	float y_offset = 0;
-	for (int i = 0; i < 1; i++)
-	{
-		//horizontal check
-		if(ra > PI/2 && ra < 1.5*PI)
-		{
-			while (p_x > rx +64)
-				rx += 64;
-
-			printf("rx = %f\n",rx);
-			if (ra > PI)// quadrant 3
-			{
-				printf("in quadrant 3\n");
-				printf("ry = %f, py = %f\n",ry,p_y);
-				ry = tan(ra - PI) * (p_x - rx);
-				ry = p_y - ry;
-				y_offset = (64) * tan(ra - PI);
-			}
-			else // quadrant 2
-			{
-				ry = tan(PI- ra) * (p_x - rx);
-				ry = p_y + ry;
-				y_offset = (64) * tan(PI - ra);
-			}
-		}
-		else
-		{
-			while (p_x > rx)
-				rx += 64;
-			if (ra > PI)// quadrant 4
-			{
-				ry = tan(2*PI - ra) * (rx - p_x);
-				ry = p_y - ry;
-				y_offset = (64) * tan(2*PI -ra);
-			}
-			else // quadrant 1
-			{
-				ry = tan(ra) * (rx - p_x);
-				ry = p_y + ry;
-				y_offset = (64) * tan(ra);
-			}
-		}
-
- 		for (int i = 0; i < 8; i++)
-		{
-			printf("--------iteration [%i]--------------\n",i);
-			printf("x_offset = %f\n", x_offset);
-			printf("rx in iter [%f] ry in iter[%f]!\n",rx,ry);
-			int yG = ry/64;
-			int xG = rx/64;
-			printf(" before check xG [%d] yG [%d]!\n",xG,yG);
-
-			if (yG >= 0 && xG >= 0 && yG < 8 && xG < 8 && ra > PI/2 && ra < 1.5 * PI) {
-				printf("Checking left wall\n");
-				xG--;
-				if (arr[yG * 8 + xG]) {
-					printf("LEFT xG [%d] yG [%d]!\n",xG,yG);
-					break;
-				}
-			}
-			else if (yG >= 0 && xG >= 0 && yG < 8 && xG < 8) {
-				printf("Checking right wall\n");
-				if (arr[yG * 8 + xG]) {
-					printf("RIGHT xG [%d] yG [%d]!\n",xG,yG);
-					break;
-				}
-			}
-			if (ra < 1.5 * PI && ra > PI/2)
-				rx = rx - x_offset;
-			else
-				rx = rx + x_offset;
-			if (ra > PI)
-				ry = ry - y_offset;
-			else
-				ry = ry + y_offset;
-		}
-
-		printf("rx and ry [%f][%f]\n",rx,ry);
-
-	}
-		point s ={rx,ry};
-	return s;
-}
-
 double dist2(float x1, float y1, float x2, float y2)
 {
     double dx = x2 - x1;
@@ -411,26 +235,114 @@ double dist2(float x1, float y1, float x2, float y2)
     return sqrt(dx*dx + dy*dy);
 }
 
+int is_wall(double rx, double ry)
+{
+	int mx = (int)rx>>6;
+	int my = (int)ry>>6;
+	int mp = my * MAP_WIDTH + mx;
+	if (mp < MAP_DIM && arr[mp] == 1) {
+		return 1;
+	}
+	return 0;
+}
+
+point raycast_hor(double radian)
+{
+	double px = p_x, py = p_y, rx, ry, xo, yo;
+	if (radian > PI) {
+		ry = (((int)py>>6)<<6)-0.002;
+		rx = px-((py-ry)/tan(radian));
+		yo = -64, xo = yo/tan(radian);
+	}
+	else if (radian < PI) {
+		ry = (((int)py>>6)<<6) + 64;
+		rx = px-((py-ry)/tan(radian));
+		yo = 64, xo = yo/tan(radian);
+	}
+	if (radian==0 || radian==PI) {return (point){px,py};}
+	for (int i=0; i<8 && !is_wall(rx, ry); i++) {
+		rx = rx + xo;
+		ry = ry + yo;
+	}
+	return (point){rx,ry};
+}
+
+point raycast_ver(double radian)
+{
+	double px = p_x, py = p_y, rx, ry, xo, yo;
+	if (radian > PI/2 && radian < 1.5*PI) {
+		rx = (((int)px>>6)<<6)-0.002;
+		ry = py - (tan(radian) * (px-rx));
+		xo = -64, yo = tan(radian) * xo;
+	}
+	else if (radian < PI/2 || radian > 1.5*PI) {
+		rx = (((int)px>>6)<<6) + 64;
+		ry = py - (tan(radian) * (px-rx));
+		xo = 64, yo = tan(radian) * xo;
+		printf("rx,ry [%f][%f]\n",rx,ry);
+	}
+	if (radian==PI/2 || radian==PI*1.5) {return (point){px,py};}
+	for (int i=0; i<8 && !is_wall(rx, ry); i++) {
+		rx = rx + xo;
+		ry = ry + yo;
+	}
+
+	return (point){rx,ry};
+}
+
+// py = 166 166/64
+point raycast(double radian)
+{
+	point hray = raycast_hor(radian);
+	point vray = raycast_ver(radian);
+	double len_hor = vector2d_len(hray.x-p_x,hray.y- p_y);
+	double len_vert = vector2d_len(vray.x -p_x,vray.y -p_y);
+	printf("horlen = %f verlen = %f\n", len_hor, len_vert);
+	if (len_hor > len_vert)
+		return vray;
+	else
+		return hray;
+}
+
+void draw_ray(point ray) {
+	drawline(p_x,p_y,ray.x,ray.y,0xFF00FFFF);
+}
+
+void raycaster(int nb_rays, double fov)
+{
+	if (nb_rays == 1) {
+		draw_ray(raycast(pa));
+		return;
+	}	
+	double start_radian = pa-fov/2;
+	double step = fov / (nb_rays -1);
+	for (int i=0; i < nb_rays; i++) {
+		draw_ray(raycast(start_radian));
+		start_radian += step;
+	}
+}
 
 void drawRay()
 {
-	double d = 2* PI;
-	int val = 100;
-	for (int i = 0; i < val; i++)
-	{
-		point hor = gethorizontalRay(pa-d);
-		point vert = getverticalRay(pa-d);
-		/* code */
-		// double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
-		// double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
-		double len_hor = dist2(hor.x,hor.y,p_x,p_y);
-		double len_vert = dist2(vert.x,vert.y,p_x,p_y);
-		if(len_hor < len_vert)
-			drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
-		else
-			drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
-		d -= 2*PI/val;
-	}
+	point hor = raycast(pa);
+	drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
+	// double d = 2* PI;
+	// int val = 1500;
+	// for (int i = 0; i < val; i++)
+	// {
+	// 	point hor = gethorizontalRay(pa-d);
+	// 	point vert = getverticalRay(pa-d);
+	// 	/* code */
+	// 	// double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
+	// 	// double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
+	// 	double len_hor = dist2(hor.x,hor.y,p_x,p_y);
+	// 	double len_vert = dist2(vert.x,vert.y,p_x,p_y);
+	// 	if(len_hor < len_vert)
+	// 		drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
+	// 	else
+	// 		drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
+	// 	d -= 2*PI/val;
+	// }
 
 
 
@@ -465,7 +377,7 @@ void draw_minimap(void* param)
 	float line_mult = 5;
 	drawline(p_x,p_y,p_x+pdx*line_mult,p_y+pdy*line_mult,0xFF0000FF);
 
-	drawRay();
+	raycaster(1, PI);
 
 }
 
