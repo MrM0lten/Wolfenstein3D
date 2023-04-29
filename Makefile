@@ -53,13 +53,11 @@ $(BLD_DIR)/%.o: %.c
 # Commands
 fclean:
 	@$(MAKE) fclean -C ./libft
-	@if [ -d "./Mlx_Module_Button" ]; then $(MAKE) fclean -C ./Mlx_Module_Button; fi
 	@rm -rf $(BLD_DIR) $(TARGET) $(BONUST)
 	@printf "$(BLUE)F_Cleaned!\n$(DEF_COLOR)"
 
 clean:
 	@$(MAKE) clean -C ./libft
-	@if [ -d "./Mlx_Module_Button" ]; then $(MAKE) clean -C ./Mlx_Module_Button; fi
 	@rm -rf $(BLD_DIR)
 	@printf "$(BLUE)Cleaned!\n$(DEF_COLOR)"
 
