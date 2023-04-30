@@ -7,7 +7,6 @@
 #define MAP_DIM MAP_HEIGHT * MAP_WIDTH
 #define SQ_DIM MAP_DIM
 
-#define PI 3.1415926
 #define RAYS 512
 
 #define FOV PI/2
@@ -440,7 +439,8 @@ void draw_minimap(void* param)
 
 int main()
 {
-	map_t* map = read_map("./resources/maps/example.cub");
+	map_t* map = read_map("./resources/maps/broken.cub");
+	delete_map(map);
 
 /* 	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);

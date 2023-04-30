@@ -12,6 +12,7 @@
 #include "MLX42.h"
 #include "libft.h"
 
+#define PI 3.1415926
 
 enum map_type_id{
     MP_ERR = 0,
@@ -57,9 +58,20 @@ typedef struct map_s
 
 } map_t;
 
-
+map_t* init_map(void);
 map_t* read_map(char *path);
 int validate_map(map_t* map);
 void delete_map(map_t *map);
+
+void store_map_array(map_t* map,char *line,int fd);
+void store_map_color(map_t* map,char *line);
+void store_map_texture(map_t* map,char *line);
+enum map_type_id identify_line(char *line);
+
+//map debugging
+void display_map_data(map_t *map);
+void print_map(map_t *map);
+void log_string(char *message, int level);
+int ft_strarr_len(char **arr);
 
 #endif
