@@ -440,8 +440,10 @@ void draw_minimap(void* param)
 int main()
 {
 	map_t* map = read_map("./resources/maps/broken.cub");
+	if(map == NULL)
+		return 1;
+	printf("MAP IS VALID\n");
 	delete_map(map);
-
 /* 	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)

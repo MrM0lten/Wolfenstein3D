@@ -1,18 +1,15 @@
 #include "wolfenstein.h"
 
-
 //a function specifically made to free a char * and log an error
 static void free_and_warn(char ** texture)
 {
     log_string("Texture with same Identifier detected",1);
     free(*texture);
     *texture = NULL;
-
 }
 
 void store_map_texture(map_t* map,char *line)
 {
-    printf("found texture\n");
     unsigned int i = 2;
     while(line[i] == ' ' || line[i] == '\t' ) //detecting any spaces after the id
         i++;
@@ -80,15 +77,19 @@ void store_map_color(map_t* map,char *line)
         curr++;
     }
     col |= 255; //adding alpha at the end
-    if(map->col_floor != 0)
-        log_string("Addional Ceiling Color found!",1);
-    if(map->col_ceil != 0)
-        log_string("Addional Floor Color found!",1);
 
     if(line[0] == 'F')
+    {
+        if(map->col_floor != 0)
+            log_string("Addional Ceiling Color found!",1);
         map->col_floor = col;
+    }
     else if(line[0] == 'C')
+    {
+        if(map->col_ceil != 0)
+            log_string("Addional Floor Color found!",1);
         map->col_ceil = col;
+    }
 
 
     //free utilities
@@ -101,18 +102,18 @@ void store_map_color(map_t* map,char *line)
 
 //fills the maps int array with values, it will detect errors, but will parse anyways
 //actual error checking will be done later
+//fill actual map array by looping through the list
+//'0' = 0
+//'1' = 1
+//' ' = 2
+//'N/E/S/W' = 0 but save info player info
+//err = -1
 static void fill_map(map_t* map,t_list* lst_line)
 {
     map->map = malloc(sizeof(int) * (map->map_dim));
     char* content;
     int pos = 0;
     int i;
-    //fill actual map array by looping through the list
-    //'0' = 0
-    //'1' = 1
-    //' ' = 2
-    //'N/E/S/W' = 0 but save info player info
-    //err = -1
     while(lst_line)
     {
         content = (char *)lst_line->content;
@@ -177,14 +178,17 @@ static void fill_map(map_t* map,t_list* lst_line)
 //will finish reading the map and get map
 void store_map_array(map_t* map,char *line,int fd)
 {
-    printf("found map\n");
-
     //figure out dimensions of the map, generate list of lines
     t_list* lst_line = NULL;
     int tempx;
     while(line)
     {
         tempx = (int)ft_strlen((const char*)line);
+        if(tempx == 1) //stop as soon as a line is empty
+        {
+            free(line);
+            break;
+        }//
         if(line[tempx - 1] == '\n') //removing 1 if last character is new line
             tempx--;
         if(tempx > map->map_x)
@@ -195,13 +199,9 @@ void store_map_array(map_t* map,char *line,int fd)
         line = get_next_line(fd);
     }
     map->map_dim = map->map_x * map->map_y;
-    printf("map dim = [%d][%d]\n", map->map_x, map->map_y);
-
 
     fill_map(map,lst_line);
-
     display_map_data(map);
-
     ft_lstclear(&lst_line,free);
 }
 
@@ -259,8 +259,6 @@ map_t* read_map(char *path)
     while(line)
     {
         id = identify_line(line);
-        //printf("id = %d\n",id);
-        //printf("line = {%s}\n",line);
         if(id == MP_TEXT)
             store_map_texture(map,line);
         else if(id == MP_COL)
@@ -281,16 +279,94 @@ map_t* read_map(char *path)
     }
     return map;
 }
+
+//retrieves the direct value of a maps->map given the xy coordinates
+int get_grid_val(int x,int y, map_t* map)
+{
+    return map->map[y * map->map_x+ x];
+}
+
+//based on a grid checks if a given point(x,y) is adjacent to a wall in each cardial direction
+int is_walled(int x, int y,map_t* map)
+{
+    int val = map->map[y * map->map_x + x];
+    //printf("val = %d\n",val);
+    if(val == 1)
+    {
+        //printf("IS WALL\n");
+        return 1;
+    }
+    //initially checking for borders
+    if(x == 0 || x+1 == map->map_x || y == 0 || y+1 == map->map_y)
+        return 0;
+
+    //need to check every element as map could have 'holes'
+    if(get_grid_val(x+1,y,map) == 2 || get_grid_val(x-1,y,map) == 2
+    || get_grid_val(x,y+1,map) == 2 || get_grid_val(x,y-1,map) == 2)
+        return 0;
+    return 1;
+}
+
+
 //returns 1 on success
 // 0 on failure
 int validate_map(map_t* map)
 {
-    return 1;
+    int ret = 1;
+    if(map->text_north == NULL || access(map->text_north,F_OK | R_OK)){
+        log_string("No NORTH texture found",2);
+        ret = 0;
+    }
+    if(map->text_south == NULL || access(map->text_south,F_OK | R_OK)){
+        log_string("No SOUTH texture found",2);
+        ret = 0;
+    }
+    if(map->text_east == NULL || access(map->text_east,F_OK | R_OK)){
+        log_string("No EAST texture found",2);
+        ret = 0;
+    }
+    if(map->text_west == NULL || access(map->text_west,F_OK | R_OK)){
+        log_string("No WEST texture found",2);
+        ret = 0;
+    }
+
+    if(map->col_ceil == 0){
+        log_string("No Ceiling color found",2);
+        ret = 0;
+    }
+    if(map->col_floor == 0){
+        log_string("No Ceiling color found",2);
+        ret = 0;
+    }
+
+    if(map->p_pos_x == -1){
+        log_string("player Position was not set within the map",2);
+        ret = 0;
+    }
+
+    int val;
+    //check if each 0 has only 1 and 0 as adjacent positions
+    for (int y = 0; y < map->map_y; y++)
+    {
+        for (int x = 0; x < map->map_x; x++)
+        {
+            val = map->map[y * map->map_x + x];
+            if(val == 2)
+                continue;
+            //printf("val in loop= %d\n",val);
+            if(val == -1 || !is_walled(x,y,map))
+            {
+                //printf("x,y = [%d][%d]\n",x,y);
+                log_string("Map is impossible.",2);
+                return 0;
+            }
+        }
+    }
+    return ret;
 }
 
 void delete_map(map_t *map)
 {
-    (void)map;
     free(map->text_north);
     free(map->text_south);
     free(map->text_east);
