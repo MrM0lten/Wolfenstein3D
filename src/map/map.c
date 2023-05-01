@@ -278,7 +278,7 @@ map_t* read_map(char *path)
     close(fd);
     if(!validate_map(map))
     {
-        delete_map(map);
+        free_map(map);
         return NULL;
     }
 	map->texture_north = mlx_load_png(map->text_north);
@@ -374,7 +374,7 @@ int validate_map(map_t* map)
     return ret;
 }
 
-void delete_map(map_t *map)
+void free_map(map_t *map)
 {
     free(map->text_north);
     free(map->text_south);
@@ -382,5 +382,4 @@ void delete_map(map_t *map)
     free(map->text_west);
     free(map->map);
     free(map);
-
 }

@@ -3,7 +3,7 @@ MAKEFLAGS = --no-print-directory
 
 # Compiler
 CC		:=	cc
-CFLAGS	:=	-g -O3 -lm #note causes warnings when compiling unused lib
+CFLAGS	:=	-g -O3 -lm#note causes warnings when compiling unused lib
 
 # Targets
 TARGET	:= wolfenstein
