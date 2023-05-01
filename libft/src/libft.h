@@ -39,7 +39,7 @@ char	*ft_strdup(const char *s);
 char	*ft_strchr(const char *s, int c);
 char	*ft_strrchr(const char *s, int c);
 int		ft_atoi(const char *nptr);
-
+void	*ft_realloc(void *old, size_t old_size, size_t new_size);
 // ADDITIONAL
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 char	*ft_strjoin(char const *s1, char const *s2);

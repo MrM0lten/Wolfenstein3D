@@ -1,14 +1,4 @@
-#include <stdio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <math.h>
-
-#include <sys/time.h>
-
-#include "MLX42.h"
-#include "libft.h"
-
+#include "wolfenstein.h"
 
 #define IMG_WIDTH 1024
 #define IMG_HEIGHT 512
@@ -17,7 +7,6 @@
 #define MAP_DIM MAP_HEIGHT * MAP_WIDTH
 #define SQ_DIM MAP_DIM
 
-#define PI 3.1415926
 #define RAYS 512
 
 #define FOV PI/2
@@ -450,7 +439,12 @@ void draw_minimap(void* param)
 
 int main()
 {
-	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
+	map_t* map = read_map("./resources/maps/broken.cub");
+	if(map == NULL)
+		return 1;
+	printf("MAP IS VALID\n");
+	delete_map(map);
+/* 	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
 		printf("error\n");
@@ -466,6 +460,6 @@ int main()
 
 
 	mlx_loop(mlx);
-	mlx_terminate(mlx);
+	mlx_terminate(mlx); */
 	return (0);
 }
