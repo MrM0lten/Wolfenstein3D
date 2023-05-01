@@ -22,9 +22,10 @@ float pdx = 0;
 float pdy = 0;
 float pa = 2*PI;
 
+
 mlx_image_t* image;
 mlx_image_t* image2;
-
+mlx_image_t* texture;
 map_t* map;
 	int x = 8;
 	int y = 8;
@@ -39,12 +40,22 @@ map_t* map;
 	1,0,0,0,0,0,0,1,
 	1,1,1,1,1,1,1,1,
 }; */
-double ray_data[RAYS];
+//double ray_data[RAYS];
+ray ray_data[RAYS];
 
 
 //some frame counting
 int nbFrames = 0;
 #define DELAYPROCESS 100000000
+
+// function determines to what quadrant a given radian points to
+// is not defined for radian == 0 and radian == PI
+int is_up(double radian){
+	return (radian > PI && radian < PI*2);
+}
+int is_down(double radian){
+	return (radian > 0 && radian < PI);
+}
 
 size_t	get_time(void)
 {
@@ -153,8 +164,6 @@ void ft_hook(void* param)
 			pa -= 2 * PI;
 		pdx = cos(2*PI - pa) * 5;
 		pdy = sin(pa) * 5;
-
-
 		//p_x += 1;
 
 	}
@@ -221,12 +230,6 @@ void draw_rect(mlx_image_t* image, int x, int y, int val)
 
 }
 
-typedef struct point_s
-{
-	float x;
-	float y;
-}point;
-
 double dist2(float x1, float y1, float x2, float y2)
 {
     double dx = x2 - x1;
@@ -292,7 +295,7 @@ point raycast_ver(double radian)
 }
 
 // py = 166 166/64
-point raycast(double radian)
+ray raycast(double radian)
 {
 	//printf("in rayacst\n");
 	point hray = raycast_hor(radian);
@@ -300,24 +303,49 @@ point raycast(double radian)
 	double len_hor = vector2d_len(hray.x-p_x,hray.y- p_y);
 	double len_vert = vector2d_len(vray.x -p_x,vray.y -p_y);
 	//printf("horlen = %f verlen = %f\n", len_hor, len_vert);
-	if (len_vert == 0)
-		return hray;
-	if (len_hor == 0)
-		return vray;
-	if (len_hor > len_vert)
-		return vray;
-	else
-		return hray;
+	ray ray;
+	if (len_vert == 0) {
+		printf("1 SETTING HOR RAY\n");
+		ray.hit = hray;
+		ray.len = len_hor;
+		ray.dir = radian;
+		ray.hit_type = 1;
+		return ray;
+	}
+	if (len_hor == 0) {
+		printf("1 SETTING VERT RAY\n");
+		ray.hit = vray;
+		ray.len = len_vert;
+		ray.dir = radian;
+		ray.hit_type = 2;
+		return ray;
+	}
+	if (len_hor > len_vert) {
+		printf("2 SETTING VER RAY\n");
+		ray.hit = vray;
+		ray.len = len_vert;
+		ray.dir = radian;
+		ray.hit_type = 2;
+		return ray;
+	}
+	else {
+		printf("2 SETTING HOR RAY\n");
+		ray.hit = hray;
+		ray.len = len_hor;
+		ray.dir = radian;
+		ray.hit_type = 1;
+		return ray;
+	}
 }
 
 inline void draw_ray(point ray) {
 	drawline(p_x,p_y,ray.x,ray.y,0xFF00FFFF);
 }
 
-void raycaster(int nb_rays, double fov,double *arr)
+void raycaster(int nb_rays, double fov,ray *arr)
 {
 	if (nb_rays == 1) {
-		draw_ray(raycast(pa));
+		draw_ray(raycast(pa).hit);
 		return;
 	}
 	double start_radian = pa-fov/2;
@@ -328,54 +356,54 @@ void raycaster(int nb_rays, double fov,double *arr)
 		else if (start_radian < 0)
 			start_radian += 2*PI;
 		//printf("angle for ray = %f\n", start_radian);
-		point p = raycast(start_radian);
-		draw_ray(p);
+		arr[i] = raycast(start_radian);
+		draw_ray(arr[i].hit);
 		//arr[i] = vector2d_len(p.x - p_x, p.y - p_y);
 		double temp = pa - start_radian;
 		if(temp > 2*PI)
 			temp -= 2*PI;
 		else if(temp < 0)
 			temp += 2*PI;
+		arr[i].len = (64 * dist_to_proj)/(arr[i].len * cos(temp));
 
-		arr[i] = (64 * dist_to_proj)/(vector2d_len(p.x - p_x, p.y - p_y)*cos(temp));
-
-
-		if(arr[i] > HALF_SCREEN)
-			arr[i] = HALF_SCREEN;
+		if(arr[i].len > HALF_SCREEN)
+			arr[i].len = HALF_SCREEN;
 		start_radian += step;
 	}
 }
 
+// void draw_wall()
+// {
+
+// }
+
+// void draw_vert_slice()
+// {
+// 	//ceiling
+// 	for (int i = 0; i < IMG_HEIGHT, i++)
+// 	{
+// 	}
+// 	//wall
+// 	for (int i = 0; i < IMG_HEIGHT, i++)
+// 	{
+// 	}
+// 	//floor
+// 	for (int i = 0; i < IMG_HEIGHT, i++)
+// 	{
+// 	}
+
+// 	//alternitive
+// 	int pixel[]
+// 	for (int i = 0; i < IMG_HEIGHT, i++)
+// 	{
+// 		put_pixel(pixel_arr);
+// 	}
+// }
+
 void drawRay()
 {
-	point hor = raycast(pa);
-	drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
-	// double d = 2* PI;
-	// int val = 1500;
-	// for (int i = 0; i < val; i++)
-	// {
-	// 	point hor = gethorizontalRay(pa-d);
-	// 	point vert = getverticalRay(pa-d);
-	// 	/* code */
-	// 	// double len_hor = vector2d_len(hor.x-p_x,hor.y- p_y);
-	// 	// double len_vert = vector2d_len(vert.x -p_x,vert.y -p_y);
-	// 	double len_hor = dist2(hor.x,hor.y,p_x,p_y);
-	// 	double len_vert = dist2(vert.x,vert.y,p_x,p_y);
-	// 	if(len_hor < len_vert)
-	// 		drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
-	// 	else
-	// 		drawline(p_x,p_y,vert.x,vert.y,0x00FFFFFF);
-	// 	d -= 2*PI/val;
-	// }
-
-
-
-/* 	printf("len hor [%f]len vert [%f]\n",len_hor,len_vert);
-
-		printf("next vertical line [%f][%f]\n",vert.x,vert.y); */
-
-	//	drawline(p_x,p_y,hor.x,hor.y,0xFF00FFFF);
-
+	ray ray = raycast(pa);
+	drawline(p_x,p_y,ray.hit.x,ray.hit.y,0xFF00FFFF);
 
 }
 
@@ -384,7 +412,8 @@ void print_raydata()
 	printf("-----------------PRINTING RAY DATA---------\n");
 	for (int i = 0; i < RAYS; i++)
 	{
-		printf("Ray [%i] val = [%f]\n",i,ray_data[i]);
+		printf("Ray [%i]; len=[%f]; hit_type=[%i]\n",i,ray_data[i].len,ray_data[i].hit_type);
+
 	}
 
 }
@@ -404,14 +433,33 @@ void draw_3dView()
 	for (int i = 0; i < RAYS; i++)
 	{
 		printf("yes\n");
-		drawline((int)(i+HALF_SCREEN),0,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i])/2),map->col_ceil);
-		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i])/2),(int)(i+HALF_SCREEN),
-		(int)((IMG_HEIGHT+ray_data[i])/2),0x00FFFFFF);
-		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i])/2),(int)(i+HALF_SCREEN),IMG_HEIGHT,map->col_floor);
-		printf("drawline from [%d][%d] to [%d][%d]\n",(int)(i+HALF_SCREEN),(int)(IMG_HEIGHT- ray_data[i]/2)
-		,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i])/2));
+		drawline((int)(i+HALF_SCREEN),0,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),map->col_ceil);
+		if (ray_data[i].hit_type == 1) {
+			printf("IS HOR RAY\n");
+			if (is_up(ray_data[i].dir)) {
+				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x000000FF);
+			}
+			else {
+				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xFFFFFFFF);
+			}
+		}
+		else {
+			printf("IS VERT RAY\n");
+			if (ray_data[i].dir > PI/2 && ray_data[i].dir < PI*1.5) {
+				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x5A5A5AFF);
+			}
+			else {
+				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xD3D3D3FF);
+			}
+		}
+		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i].len)/2),(int)(i+HALF_SCREEN),IMG_HEIGHT,map->col_floor);
+		printf("drawline from [%d][%d] to [%d][%d]\n",(int)(i+HALF_SCREEN),(int)(IMG_HEIGHT- ray_data[i].len/2)
+		,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i].len)/2));
 	}
-
 }
 
 void draw_minimap(void* param)
@@ -461,6 +509,11 @@ int main()
 	mlx_loop_hook(mlx, count_frames, mlx);
 	//mlx_loop_hook(mlx, slow_process, mlx); //turn this on to test FPS counter
 	mlx_image_to_window(mlx, image, 0, 0);
+
+	mlx_texture_t* arrow = mlx_load_png("./resources/textures/player_arrow.png");
+	texture= mlx_texture_to_image(mlx,arrow);
+	mlx_resize_image(texture,100,100);
+	mlx_image_to_window(mlx,texture,0,0);
 
 
 	mlx_loop(mlx);

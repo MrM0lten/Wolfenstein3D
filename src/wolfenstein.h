@@ -58,6 +58,20 @@ typedef struct map_s
 
 } map_t;
 
+typedef struct point_s
+{
+	float x;
+	float y;
+}point;
+
+typedef struct ray
+{
+	point hit;
+	double len;
+	double dir;
+	int hit_type;
+}ray;
+
 map_t* init_map(void);
 map_t* read_map(char *path);
 int validate_map(map_t* map);
