@@ -43,6 +43,11 @@ typedef struct map_s
     char *text_west;
     char *text_east;
 
+	mlx_texture_t* texture_north;
+	mlx_texture_t* texture_south;
+	mlx_texture_t* texture_east;
+	mlx_texture_t* texture_west;
+
     uint32_t col_floor;
     uint32_t col_ceil;
 
@@ -69,13 +74,20 @@ typedef struct ray
 	point hit;
 	double len;
 	double dir;
-	int hit_type;
+	enum directions{
+		DIR_NORTH,
+		DIR_SOUTH,
+		DIR_EAST,
+		DIR_WEST
+	} hit_dir;
 }ray;
 
 map_t* init_map(void);
 map_t* read_map(char *path);
 int validate_map(map_t* map);
 void delete_map(map_t *map);
+
+void	my_mlx_put_pixel(mlx_image_t *img, int x, int y, int color);
 
 void store_map_array(map_t* map,char *line,int fd);
 void store_map_color(map_t* map,char *line);

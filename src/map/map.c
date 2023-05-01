@@ -231,6 +231,10 @@ map_t* init_map(void)
     map->text_south = NULL;
     map->text_east = NULL;
     map->text_west = NULL;
+	map->texture_north = NULL;
+	map->texture_south = NULL;
+	map->texture_east = NULL;
+	map->texture_west = NULL;
     map->col_ceil = 0; // black, but no transparency
     map->col_floor = 0; // black, but no transparency
     map->p_orient = -1;
@@ -277,6 +281,11 @@ map_t* read_map(char *path)
         delete_map(map);
         return NULL;
     }
+	map->texture_north = mlx_load_png(map->text_north);
+	map->texture_south = mlx_load_png(map->text_south);
+	map->texture_east = mlx_load_png(map->text_east);
+	map->texture_west = mlx_load_png(map->text_west);
+
     return map;
 }
 

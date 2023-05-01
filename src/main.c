@@ -25,7 +25,7 @@ float pa = 2*PI;
 
 mlx_image_t* image;
 mlx_image_t* image2;
-mlx_image_t* texture;
+mlx_t* mlx;
 map_t* map;
 	int x = 8;
 	int y = 8;
@@ -47,6 +47,18 @@ ray ray_data[RAYS];
 //some frame counting
 int nbFrames = 0;
 #define DELAYPROCESS 100000000
+
+void	my_mlx_put_pixel(mlx_image_t *img, int x, int y, int color)
+{
+	char	*dst;
+
+	if (x > IMG_WIDTH -1 || x < 0)
+		return ;
+	if (y > IMG_HEIGHT -1 || y < 0)
+		return ;
+
+	mlx_put_pixel(image, (int)x, (int)y, color);
+}
 
 // function determines to what quadrant a given radian points to
 // is not defined for radian == 0 and radian == PI
@@ -127,7 +139,7 @@ void	drawline(int ax,int ay, int bx,int by, int color)
 	y = ay;
 	while (steps--)
 	{
-		mlx_put_pixel(image, (int)x, (int)y, color);
+		my_mlx_put_pixel(image, (int)x, (int)y, color);
 		x = x + xinc;
 		y = y + yinc;
 	}
@@ -304,38 +316,27 @@ ray raycast(double radian)
 	double len_vert = vector2d_len(vray.x -p_x,vray.y -p_y);
 	//printf("horlen = %f verlen = %f\n", len_hor, len_vert);
 	ray ray;
-	if (len_vert == 0) {
-		printf("1 SETTING HOR RAY\n");
-		ray.hit = hray;
-		ray.len = len_hor;
-		ray.dir = radian;
-		ray.hit_type = 1;
-		return ray;
-	}
-	if (len_hor == 0) {
+
+	if (len_hor == 0 || len_hor > len_vert) {
 		printf("1 SETTING VERT RAY\n");
 		ray.hit = vray;
 		ray.len = len_vert;
-		ray.dir = radian;
-		ray.hit_type = 2;
-		return ray;
-	}
-	if (len_hor > len_vert) {
-		printf("2 SETTING VER RAY\n");
-		ray.hit = vray;
-		ray.len = len_vert;
-		ray.dir = radian;
-		ray.hit_type = 2;
-		return ray;
+		if(ray.dir > PI/2 && ray.dir < PI*1.5)
+			ray.hit_dir = DIR_WEST;
+		else
+			ray.hit_dir = DIR_EAST;
 	}
 	else {
 		printf("2 SETTING HOR RAY\n");
 		ray.hit = hray;
 		ray.len = len_hor;
-		ray.dir = radian;
-		ray.hit_type = 1;
-		return ray;
+		if(is_up(ray.dir))
+			ray.hit_dir = DIR_NORTH;
+		else
+			ray.hit_dir = DIR_SOUTH;
 	}
+	ray.dir = radian;
+	return ray;
 }
 
 inline void draw_ray(point ray) {
@@ -366,16 +367,13 @@ void raycaster(int nb_rays, double fov,ray *arr)
 			temp += 2*PI;
 		arr[i].len = (64 * dist_to_proj)/(arr[i].len * cos(temp));
 
-		if(arr[i].len > HALF_SCREEN)
-			arr[i].len = HALF_SCREEN;
+		// if(arr[i].len > HALF_SCREEN)
+		// 	arr[i].len = HALF_SCREEN;
 		start_radian += step;
 	}
 }
 
-// void draw_wall()
-// {
 
-// }
 
 // void draw_vert_slice()
 // {
@@ -395,7 +393,7 @@ void raycaster(int nb_rays, double fov,ray *arr)
 // 	//alternitive
 // 	int pixel[]
 // 	for (int i = 0; i < IMG_HEIGHT, i++)
-// 	{
+// 	{is_up(ray_data[i].dir
 // 		put_pixel(pixel_arr);
 // 	}
 // }
@@ -412,11 +410,132 @@ void print_raydata()
 	printf("-----------------PRINTING RAY DATA---------\n");
 	for (int i = 0; i < RAYS; i++)
 	{
-		printf("Ray [%i]; len=[%f]; hit_type=[%i]\n",i,ray_data[i].len,ray_data[i].hit_type);
+		printf("Ray [%i]; len=[%f]; hit_type=[%i]\n",i,ray_data[i].len,ray_data[i].hit_dir);
 
 	}
 
 }
+
+
+void draw_temp_wall(mlx_texture_t* text)
+{
+	uint32_t col=0;
+	int lshift;
+	
+	printf("col 1 =%d\n",text->pixels[0]);
+	printf("col 2 =%d\n",text->pixels[1]);
+	printf("col 3 =%d\n",text->pixels[2]);
+	printf("col 4 =%d\n",text->pixels[3]);
+
+	mlx_image_t* img123 = mlx_texture_to_image(mlx,text);
+	mlx_image_to_window(mlx,img123,10,10);
+	printf("width/height [%d][%d]\n",text->width,text->height);
+	printf("bbp [%d]\n",text->bytes_per_pixel);
+
+	int x_offset = 1;
+	int len = 300;
+	float delta = (float)len/64;
+	printf("delta = %f\n", delta);
+	float it = delta;
+	int y_text = 0;
+	for (int k = 0; k < 64; k++){
+		x_offset = k;
+		it = delta;
+		y_text = 0;
+	for (int i = 0; i < len; i++)
+	{
+		it--;
+		if (it < 0) {
+			it += delta;
+			y_text++;
+		}
+
+
+		// printf("pixel position = %d\n", i * text->width*4+0+x_offset);
+		// for (int j = 0; j < 64; j++) {
+		// 	printf("RGB[%d]=(%d",j,	text->pixels[ 0+j*4+(64*4)]);
+		// 	printf(",%d",			text->pixels[ 1+j*4+(64*4)]);
+		// 	printf(",%d",			text->pixels[ 2+j*4+(64*4)]);
+		// 	printf(",%d)\n",		text->pixels[ 3+j*4+(64*4)]);
+		// }
+		col = (uint32_t)text->pixels[((y_text * text->width+x_offset)*4)+0] << 3*8
+			| (uint32_t)text->pixels[((y_text * text->width+x_offset)*4)+1] << 2*8
+			| (uint32_t)text->pixels[((y_text * text->width+x_offset)*4)+2] << 1*8
+			| (uint32_t)text->pixels[((y_text * text->width+x_offset)*4)+3] << 0*8;
+		//printf("col = %x\n",col);
+		// lshift = 24;
+		// col = 0;
+		// for (int j = 0; j < 4; j++)
+		// {
+		// 	col |= ((uint32_t)texture->pixels[i * texture->width + j] << lshift);
+		// 	lshift -= 8;
+		// 	//col |= 255;
+		// 
+		// }
+		mlx_put_pixel(image,600+k,100+i,col);
+	}
+	}
+}
+
+void draw_wall(ray ray,mlx_texture_t* texture,point screen_pos)
+{
+	uint32_t col;
+	int x_text;
+	if(ray.hit_dir == DIR_NORTH || ray.hit_dir == DIR_SOUTH)
+		x_text = (int)ray.hit.x % 64;
+	else
+		x_text = (int)ray.hit.y % 64;
+
+	int start_pos_y = (int)((IMG_HEIGHT - ray.len)/2);
+	int end_pos_y = (int)((IMG_HEIGHT + ray.len)/2);
+	float delta =(float)(end_pos_y - start_pos_y)/64;
+	float it = delta;
+	int y_text = 0;
+	for (int i = 0; i < end_pos_y - start_pos_y; i++)
+	{
+		it--;
+		if (it < 0) {
+			it += delta;
+			y_text++;
+		}
+		col = (uint32_t)texture->pixels[y_text * texture->width*4+0+(x_text*4)] << 3*8
+			| (uint32_t)texture->pixels[y_text * texture->width*4+1+(x_text*4)] << 2*8
+			| (uint32_t)texture->pixels[y_text * texture->width*4+2+(x_text*4)] << 1*8
+			| 255;
+		my_mlx_put_pixel(image,screen_pos.x,i+start_pos_y,col);
+	}
+}
+
+
+void draw_wall_flip(ray ray,mlx_texture_t* texture,point screen_pos)
+{
+	uint32_t col;
+	int x_text;
+	if(ray.hit_dir == DIR_NORTH || ray.hit_dir == DIR_SOUTH)
+		x_text = 64 - ((int)ray.hit.x % 64);
+	else
+		x_text = 64 - ((int)ray.hit.y % 64);
+
+	int start_pos_y = (int)((IMG_HEIGHT - ray.len)/2);
+	int end_pos_y = (int)((IMG_HEIGHT + ray.len)/2);
+	float delta =(float)(end_pos_y - start_pos_y)/64;
+	float it = delta;
+	int y_text = 0;
+	for (int i = 0; i < end_pos_y - start_pos_y; i++)
+	{
+		it--;
+		if (it < 0) {
+			it += delta;
+			y_text++;
+		}
+		col = (uint32_t)texture->pixels[y_text * texture->width*4+0+(x_text*4)] << 3*8
+			| (uint32_t)texture->pixels[y_text * texture->width*4+1+(x_text*4)] << 2*8
+			| (uint32_t)texture->pixels[y_text * texture->width*4+2+(x_text*4)] << 1*8
+			| 255;
+		my_mlx_put_pixel(image,screen_pos.x,i+start_pos_y,col);
+	}
+}
+
 void draw_3dView()
 {
 	// refresh screen on right side
@@ -434,32 +553,31 @@ void draw_3dView()
 	{
 		printf("yes\n");
 		drawline((int)(i+HALF_SCREEN),0,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),map->col_ceil);
-		if (ray_data[i].hit_type == 1) {
-			printf("IS HOR RAY\n");
-			if (is_up(ray_data[i].dir)) {
-				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
-				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x000000FF);
-			}
-			else {
-				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
-				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xFFFFFFFF);
-			}
+		if (ray_data[i].hit_dir == DIR_NORTH) {
+/* 			drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x000000FF); */
+			draw_wall(ray_data[i],map->texture_north,(point){i+HALF_SCREEN,0});
+		}
+		else if(ray_data[i].hit_dir == DIR_SOUTH) {
+/* 			drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xFFFFFFFF); */
+			draw_wall_flip(ray_data[i],map->texture_south,(point){i+HALF_SCREEN,0});
+		}
+		else if(ray_data[i].hit_dir == DIR_WEST) {
+/* 			drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x5A5A5AFF); */
+				draw_wall_flip(ray_data[i],map->texture_west,(point){i+HALF_SCREEN,0});
 		}
 		else {
-			printf("IS VERT RAY\n");
-			if (ray_data[i].dir > PI/2 && ray_data[i].dir < PI*1.5) {
-				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
-				(int)((IMG_HEIGHT+ray_data[i].len)/2),0x5A5A5AFF);
-			}
-			else {
-				drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
-				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xD3D3D3FF);
-			}
+/* 			drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),(int)(i+HALF_SCREEN),
+				(int)((IMG_HEIGHT+ray_data[i].len)/2),0xD3D3D3FF); */
+				draw_wall(ray_data[i],map->texture_east,(point){i+HALF_SCREEN,0});
 		}
 		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i].len)/2),(int)(i+HALF_SCREEN),IMG_HEIGHT,map->col_floor);
 		printf("drawline from [%d][%d] to [%d][%d]\n",(int)(i+HALF_SCREEN),(int)(IMG_HEIGHT- ray_data[i].len/2)
 		,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i].len)/2));
 	}
+	
 }
 
 void draw_minimap(void* param)
@@ -491,17 +609,21 @@ void draw_minimap(void* param)
 
 int main()
 {
-	map = read_map("./resources/maps/default.cub");
+	map = read_map("./resources/maps/show_off.cub");
 	arr = map->map;
 	if(map == NULL)
 		return 1;
+	print_map(map);
 	printf("MAP IS VALID\n");
 	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
-	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
+	mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
 		printf("error\n");
 
 	image = mlx_new_image(mlx, IMG_WIDTH, IMG_HEIGHT);
+
+
+	//draw_temp_wall(map->texture_west);
 
 	lastTime = get_time();
 	mlx_loop_hook(mlx, draw_minimap, mlx);
@@ -510,10 +632,6 @@ int main()
 	//mlx_loop_hook(mlx, slow_process, mlx); //turn this on to test FPS counter
 	mlx_image_to_window(mlx, image, 0, 0);
 
-	mlx_texture_t* arrow = mlx_load_png("./resources/textures/player_arrow.png");
-	texture= mlx_texture_to_image(mlx,arrow);
-	mlx_resize_image(texture,100,100);
-	mlx_image_to_window(mlx,texture,0,0);
 
 
 	mlx_loop(mlx);
