@@ -25,9 +25,11 @@ float pa = 2*PI;
 mlx_image_t* image;
 mlx_image_t* image2;
 
+map_t* map;
 	int x = 8;
 	int y = 8;
-	int arr[] = {
+	int* arr;
+/* 	int arr[] = {
 	1,1,1,1,1,1,1,1,
 	1,0,1,0,0,0,0,1,
 	1,0,1,0,0,0,0,1,
@@ -36,7 +38,7 @@ mlx_image_t* image2;
 	1,0,0,0,0,1,0,1,
 	1,0,0,0,0,0,0,1,
 	1,1,1,1,1,1,1,1,
-};
+}; */
 double ray_data[RAYS];
 
 
@@ -389,21 +391,23 @@ void print_raydata()
 void draw_3dView()
 {
 	// refresh screen on right side
-	for (int i = 512; i < 1024; i++)
+/* 	for (int i = 512; i < 1024; i++)
 	{
 		for (int j = 0; j < 512; j++)
 		{
 			mlx_put_pixel(image,i,j,0x000000FF);
 		}
+	} */
 
-	}
 
 
 	for (int i = 0; i < RAYS; i++)
 	{
 		printf("yes\n");
+		drawline((int)(i+HALF_SCREEN),0,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i])/2),map->col_ceil);
 		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i])/2),(int)(i+HALF_SCREEN),
 		(int)((IMG_HEIGHT+ray_data[i])/2),0x00FFFFFF);
+		drawline((int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i])/2),(int)(i+HALF_SCREEN),IMG_HEIGHT,map->col_floor);
 		printf("drawline from [%d][%d] to [%d][%d]\n",(int)(i+HALF_SCREEN),(int)(IMG_HEIGHT- ray_data[i]/2)
 		,(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT+ray_data[i])/2));
 	}
@@ -439,12 +443,12 @@ void draw_minimap(void* param)
 
 int main()
 {
-	map_t* map = read_map("./resources/maps/broken.cub");
+	map = read_map("./resources/maps/default.cub");
+	arr = map->map;
 	if(map == NULL)
 		return 1;
 	printf("MAP IS VALID\n");
-	delete_map(map);
-/* 	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
+	dist_to_proj = HALF_SCREEN/tan(HALF_FOV);
 	mlx_t* mlx = mlx_init(IMG_WIDTH, IMG_HEIGHT, "wolfenstein", true);
 	if (!mlx)
 		printf("error\n");
@@ -460,6 +464,7 @@ int main()
 
 
 	mlx_loop(mlx);
-	mlx_terminate(mlx); */
+	delete_map(map);
+	mlx_terminate(mlx);
 	return (0);
 }
