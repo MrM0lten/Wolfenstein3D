@@ -16,16 +16,25 @@
 #define IMG_HEIGHT 512
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 512
+#define MINIMAP_HEIGHT 512
+#define MINIMAP_WIDTH 512
 #define MAP_HEIGHT 8
 #define MAP_WIDTH 8
 #define MAP_DIM MAP_HEIGHT * MAP_WIDTH
 #define SQ_DIM MAP_DIM
 
-#define RAYS 512
+#define RAYS 1024
 
 #define PI 3.1415926
 
 #define DELAYPROCESS 100000000
+
+typedef struct minimap_s
+{
+	mlx_image_t *img;
+	int width;
+	int height;
+} minimap_t;
 
 typedef struct point_s
 {
@@ -114,9 +123,10 @@ typedef struct meta
 	int win_height;
 	int win_width;
 
-	mlx_image_t *image_window;
+	mlx_image_t *main_scene;
 	mlx_t* mlx;
 	map_t *map;
+	minimap_t minimap;
 	raycaster_t raycaster;
 
 	fps_counter_t fps_counter;
@@ -147,7 +157,7 @@ void print_raydata();
 // Drawing
 void drawline(mlx_image_t* image, point_t start, point_t end, int color);
 void draw_minimap(void* param);
-void draw_scene(meta_t *meta);
+void draw_scene(void *param);
 void draw_square(mlx_image_t* image, point_t start, int len, uint32_t fill, uint32_t bor);
 
 // FPS counter

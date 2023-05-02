@@ -1,7 +1,7 @@
 #include "wolfenstein.h"
 
 inline void draw_ray(point_t ray, meta_t *meta) {
-	drawline(meta->image_window, meta->player.pos, ray, 0xFF00FFFF);
+	drawline(meta->main_scene, meta->player.pos, ray, 0xFF00FFFF);
 }
 
 double	vector2d_len(double x, double y)
@@ -24,8 +24,8 @@ int is_wall(double rx, double ry, meta_t* meta)
 		return 0;
 	int mx = (int)rx>>6;
 	int my = (int)ry>>6;
-	int mp = my * MAP_WIDTH + mx;
-	if (mp >= 0 && mp < MAP_DIM && meta->map->map[mp] == 1) {
+	int mp = my * meta->map->map_x + mx;
+	if (mp >= 0 && mp <  meta->map->map_dim && meta->map->map[mp] == 1) {
 		return 1;
 	}
 	return 0;
@@ -108,7 +108,7 @@ void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
 {
 	//debug_meta(meta);
 	if (nb_rays == 1) {
-		draw_ray(raycast(meta->player.a, meta).hit, meta);
+		arr[0] = raycast(meta->player.a, meta);
 		return;
 	}
 	double start_radian = meta->player.a-fov/2;
@@ -119,13 +119,12 @@ void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
 		else if (start_radian < 0)
 			start_radian += 2*PI;
 		arr[i] = raycast(start_radian, meta);
-		draw_ray(arr[i].hit, meta);
 		double temp = meta->player.a - start_radian;
 		if(temp > 2*PI)
 			temp -= 2*PI;
 		else if(temp < 0)
 			temp += 2*PI;
-		arr[i].len = (64 * meta->dist_to_proj)/(arr[i].len * cos(temp));
+		arr[i].len = arr[i].len * cos(temp);
 		start_radian += step;
 	}
 }

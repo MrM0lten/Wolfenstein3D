@@ -34,7 +34,7 @@ void drawline(mlx_image_t* image, point_t start, point_t end, int color)
 	}
 }
 
-void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t screen_pos)
+void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t screen_pos, float wall_height)
 {
 	uint32_t col;
 	int x_text;
@@ -43,8 +43,8 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 	else
 		x_text = (int)ray->hit.y % 64;
 
-	int start_pos_y = (int)((IMG_HEIGHT - ray->len)/2);
-	int end_pos_y = (int)((IMG_HEIGHT + ray->len)/2);
+	int start_pos_y = (int)((IMG_HEIGHT - wall_height)/2);
+	int end_pos_y = (int)((IMG_HEIGHT + wall_height)/2);
 	float delta =(float)(end_pos_y - start_pos_y)/64;
 	float it = delta;
 	int y_text = 0;
@@ -64,7 +64,7 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 	}
 }
 
-void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_t screen_pos)
+void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_t screen_pos, float wall_height)
 {
 	uint32_t col;
 	int x_text;
@@ -73,8 +73,8 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	else
 		x_text = 64 - ((int)ray->hit.y % 64) - 1;
 
-	int start_pos_y = (int)((IMG_HEIGHT - ray->len) / 2);
-	int end_pos_y = (int)((IMG_HEIGHT + ray->len) / 2);
+	int start_pos_y = (int)((IMG_HEIGHT - wall_height) / 2);
+	int end_pos_y = (int)((IMG_HEIGHT + wall_height) / 2);
 	float delta =(float)(end_pos_y - start_pos_y) / 64;
 	float it = delta;
 	int y_text = 0;
@@ -109,13 +109,15 @@ void draw_player(mlx_image_t *img, player_t *player)
 void draw_minimap(void *param)
 {
 	meta_t *meta = param;
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
+	int grid_size_x = meta->minimap.width/meta->map->map_x;
+	int grid_size_y = meta->minimap.height/meta->map->map_y;
+	for (int i = 0; i < meta->map->map_x; i++) {
+		for (int j = 0; j < meta->map->map_y; j++) {
 			if (meta->map->map[j * meta->map->map_x + i] == 1) {
-				draw_square(meta->image_window, (point_t){i * 64, j * 64}, 64, 0xA9A9A9FF, 0x303030FF);
+				draw_square(meta->minimap.img, (point_t){i * grid_size_x, j * grid_size_x}, grid_size_x, 0xA9A9A9FF, 0x303030FF);
 			}
 			else {
-				draw_square(meta->image_window, (point_t){i * 64, j * 64}, 64, 0xFFFFFFFF, 0x303030FF);
+				draw_square(meta->minimap.img, (point_t){i * grid_size_y, j * grid_size_y}, grid_size_y, 0xFFFFFFFF, 0x303030FF);
 			}
 
 
@@ -123,12 +125,18 @@ void draw_minimap(void *param)
 	}
 	//		draw_square(meta->image_window, j, i, meta->map->map[(i*8)+j]);
 
-	draw_player(meta->image_window, &meta->player);
+	draw_player(meta->minimap.img, &meta->player);
 
-	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
+	for (int i = 0; i < meta->raycaster.num_rays; i++)
+	{
+		debug_ray(&meta->raycaster.rays[i]);
+		drawline(meta->minimap.img,meta->player.pos,meta->raycaster.rays[i].hit,0xFF00FFFF);
+	}
+
+	//raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
 	//debug_meta(meta);
 	//printf("in raycaster calculated len = %f\n", meta->raycaster.rays);
-	draw_scene(meta);
+	//draw_scene(meta);
 }
 
 void draw_square(mlx_image_t *image, point_t start, int len, uint32_t fill, uint32_t bor)
@@ -156,39 +164,37 @@ void draw_square(mlx_image_t *image, point_t start, int len, uint32_t fill, uint
 	draw_floor();
 } */
 
-void draw_scene(meta_t *meta)
+void draw_scene(void *param)
 {
+	meta_t* meta = param;
 	//printf("In draw_scene\n");
-	raycaster_t *raycaster = &meta->raycaster;
+	raycaster_t *rayc = &meta->raycaster;
 	point_t wall_upper;
 	point_t wall_lower;
+	float wall_height;
+	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
+	debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-		//debug_ray(&meta->raycaster.rays[i]);
-		//printf("oonum_rays = %d\n", meta->raycaster.num_rays);
-		//printf("ooIterator i=%d\n", i);
-		wall_upper.x = meta->win_width/2 + i;
-		wall_upper.y = (int)(meta->win_height - raycaster->rays[i].len) / 2;
-		//printf("oowin_height = %d raylen= %f\n",meta->win_height,raycaster->rays[i].len);
-		//printf("oowall_upper [%f][%f]\n", wall_upper.x,wall_upper.y);
-
-		wall_lower.x = meta->win_width/2 + i;
-		wall_lower.y = (int)(meta->win_height + raycaster->rays[i].len) / 2;
-
-
+		wall_height = (64 * meta->dist_to_proj)/(rayc->rays[i].len);
+		printf("wallheight = %f\n", wall_height);
+		wall_upper.x = i;
+		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
+		wall_lower.x = i;
+		wall_lower.y = (int)(meta->win_height + wall_height) / 2;
 
 		//printf("Before first drawline\n");
-		drawline(meta->image_window, (point_t){meta->win_width/2 + i, 0}, wall_upper, meta->map->col_ceil);
+		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
 		//printf("After first drawline\n");
-		if (raycaster->rays[i].hit_dir == DIR_NORTH)
-			draw_wall(meta->image_window, &raycaster->rays[i], meta->map->texture_north, wall_upper);
-		else if(raycaster->rays[i].hit_dir == DIR_SOUTH)
-			draw_wall_flip(meta->image_window, &raycaster->rays[i], meta->map->texture_south, wall_upper);
-		else if(raycaster->rays[i].hit_dir == DIR_WEST)
-			draw_wall_flip(meta->image_window, &raycaster->rays[i], meta->map->texture_west, wall_upper);
+		if (rayc->rays[i].hit_dir == DIR_NORTH)
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_north, wall_upper, wall_height);
+		else if(rayc->rays[i].hit_dir == DIR_SOUTH)
+			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_south, wall_upper, wall_height);
+		else if(rayc->rays[i].hit_dir == DIR_WEST)
+			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_west, wall_upper, wall_height);
 		else
-			draw_wall(meta->image_window, &raycaster->rays[i], meta->map->texture_east, wall_upper);
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_east, wall_upper, wall_height);
 		//printf("Before second drawline\n");
-		drawline(meta->image_window, wall_lower, (point_t){meta->win_width/2 + i, meta->win_height}, meta->map->col_floor);
+		drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
 		//printf("After second drawline\n");
 	}
 	//printf("exiting\n");

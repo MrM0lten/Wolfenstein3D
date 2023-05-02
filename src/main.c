@@ -31,16 +31,24 @@ void ft_hook(void* param)
 	}
 }
 
+int setup_minimap(mlx_t *mlx, minimap_t* minimap, int width, int height)
+{
+	minimap->width = width;
+	minimap->height = height;
+	minimap->img = mlx_new_image(mlx, width, height);
+	return 1;
+}
+
 int setup_mlx(meta_t *meta)
 {
 	meta->mlx = mlx_init(meta->win_width, meta->win_height, "wolfenstein", true);
 	if (meta->mlx == NULL) {}
-	meta->image_window = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
-	if (meta->image_window == NULL) {}
+	meta->main_scene = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
+	if (meta->main_scene == NULL) {}
+	mlx_loop_hook(meta->mlx, draw_scene, meta);
 	mlx_loop_hook(meta->mlx, draw_minimap, meta);
 	mlx_loop_hook(meta->mlx, ft_hook, meta);
-	mlx_loop_hook(meta->mlx, count_frames, meta);
-	mlx_image_to_window(meta->mlx, meta->image_window, 0, 0);
+	//mlx_loop_hook(meta->mlx, count_frames, meta);
 	return 1;
 }
 
@@ -75,6 +83,7 @@ meta_t *setup()
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
 	if(setup_raycaster(&meta->raycaster, RAYS)) {}
+	if(setup_minimap(meta->mlx,&meta->minimap,MINIMAP_WIDTH,MINIMAP_HEIGHT)){}
 
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
@@ -101,6 +110,8 @@ int main()
 {
 	meta_t *meta = setup();
 	if (meta == NULL) {}
+	//mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
+	mlx_image_to_window(meta->mlx, meta->minimap.img, 0, 0);
 	mlx_loop(meta->mlx);
 	cleanup(meta);
 	return (0);
