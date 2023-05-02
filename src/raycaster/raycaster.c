@@ -106,6 +106,7 @@ ray raycast(double radian, meta_t* meta)
 //actually refactor this properly!
 void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
 {
+	//debug_meta(meta);
 	if (nb_rays == 1) {
 		draw_ray(raycast(meta->player.a, meta).hit, meta);
 		return;

@@ -46,8 +46,8 @@ int setup_mlx(meta_t *meta)
 
 int setup_player(player_t *player, point_t start_pos, double orientation)
 {
-	player->pos.x = start_pos.x * 64;
-	player->pos.y = start_pos.y * 64;
+	player->pos.x = start_pos.x * 64 + 32;
+	player->pos.y = start_pos.y * 64 + 32;
 	player->a = orientation;
 	player->speed = 5;
 	player->dx = cos(player->a) * player->speed;

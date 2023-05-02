@@ -176,4 +176,9 @@ void print_map(map_t *map);
 void log_string(char *message, int level);
 int ft_strarr_len(char **arr);
 
+void debug_meta(meta_t *meta);
+void debug_raycaster(raycaster_t* raycaster);
+void debug_player(player_t* player);
+void debug_ray(ray *ray);
+
 #endif
