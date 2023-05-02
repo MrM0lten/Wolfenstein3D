@@ -128,18 +128,6 @@ void draw_minimap(void *param)
 	draw_scene(meta);
 }
 
-//NOT CLEAN
-// void draw_fps_counter(mlx_t *mlx)
-// {
-// 	//draw fps counter
-// 	char *test;
-// 	test = ft_itoa(nbFrames);
-// 	//mlx_put_string(mlx,test,768,256);
-// 	mlx_delete_image(mlx, image_counter);
-// 	image_counter = mlx_put_string(mlx,test,IMG_WIDTH -32,8);
-// 	free(test);
-// }
-
 void draw_square(mlx_image_t *image, point_t start, int len, uint32_t fill, uint32_t bor)
 {
 	// Filling
@@ -181,7 +169,7 @@ void draw_scene(meta_t *meta)
 
 		drawline(meta->image_window, (point_t){meta->win_width/2 + i, 0}, wall_upper, meta->map->col_ceil);
 
-		if (raycaster->rays[i].hit_dir == DIR_NORTH) 
+		if (raycaster->rays[i].hit_dir == DIR_NORTH)
 			draw_wall(meta->image_window, raycaster->rays[i], meta->map->texture_north, wall_upper);
 		else if(raycaster->rays[i].hit_dir == DIR_SOUTH)
 			draw_wall_flip(meta->image_window, raycaster->rays[i], meta->map->texture_south, wall_upper);

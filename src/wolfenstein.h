@@ -102,6 +102,7 @@ typedef struct map_s
 
 typedef struct fps_counter
 {
+	mlx_image_t *img;
 	int nbFrames;
 	size_t lastTime;
 }fps_counter_t;
@@ -109,12 +110,11 @@ typedef struct fps_counter
 typedef struct meta
 {
 	player_t player;
-	
+
 	int win_height;
 	int win_width;
 
 	mlx_image_t *image_window;
-	mlx_image_t *image_counter;
 	mlx_t* mlx;
 	map_t *map;
 	raycaster_t raycaster;
@@ -151,7 +151,7 @@ void draw_scene(meta_t *meta);
 void draw_square(mlx_image_t* image, point_t start, int len, uint32_t fill, uint32_t bor);
 
 // FPS counter
-void draw_fps_counter(mlx_t* mlx);
+void update_fps_counter(meta_t *meta);
 void count_frames(void* param);
 size_t	get_time(void);
 

@@ -39,7 +39,7 @@ int setup_mlx(meta_t *meta)
 	if (meta->image_window == NULL) {}
 	mlx_loop_hook(meta->mlx, draw_minimap, meta);
 	mlx_loop_hook(meta->mlx, ft_hook, meta);
-	//mlx_loop_hook(meta->mlx, count_frames, meta->mlx);
+	mlx_loop_hook(meta->mlx, count_frames, meta);
 	mlx_image_to_window(meta->mlx, meta->image_window, 0, 0);
 	return 1;
 }
@@ -75,10 +75,12 @@ meta_t *setup()
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
 	if(setup_raycaster(&meta->raycaster, RAYS)) {}
-	
+
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
-	//lastTime = get_time();
+	meta->fps_counter.img = NULL;
+	meta->fps_counter.lastTime = get_time();
+	meta->fps_counter.nbFrames = 0;
 	return meta;
 }
 
