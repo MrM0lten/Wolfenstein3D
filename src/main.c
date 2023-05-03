@@ -33,8 +33,8 @@ void ft_hook(void* param)
 
 int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 {
-	int grid_size_x = meta->debugmap.width/meta->map->map_x;
-	int grid_size_y = meta->debugmap.height/meta->map->map_y;
+	int grid_size_x = width/meta->map->map_x;
+	int grid_size_y = height/meta->map->map_y;
 
 	if(meta->map->map_x > meta->map->map_y)
 		debugmap->grid_size = meta->map->map_x;
@@ -59,7 +59,7 @@ int setup_mlx(meta_t *meta)
 	mlx_loop_hook(meta->mlx, draw_scene, meta);
 	mlx_loop_hook(meta->mlx, draw_debugmap, meta);
 	mlx_loop_hook(meta->mlx, ft_hook, meta);
-	//mlx_loop_hook(meta->mlx, count_frames, meta);
+	mlx_loop_hook(meta->mlx, count_frames, meta);
 	return 1;
 }
 
@@ -108,12 +108,13 @@ void free_meta(meta_t* meta)
 {
 	free_map(meta->map);
 	free(meta->raycaster.rays);
+	free(meta);
 }
 
 int cleanup(meta_t* meta)
 {
-	free_meta(meta);
 	mlx_terminate(meta->mlx);
+	free_meta(meta);
 	return 1;
 }
 

@@ -380,6 +380,16 @@ void free_map(map_t *map)
     free(map->text_south);
     free(map->text_east);
     free(map->text_west);
+
+    free(map->texture_north->pixels);
+    free(map->texture_north);
+    free(map->texture_east->pixels);
+    free(map->texture_east);
+    free(map->texture_south->pixels);
+    free(map->texture_south);
+    free(map->texture_west->pixels);
+    free(map->texture_west);
+
     free(map->map);
     free(map);
 }
