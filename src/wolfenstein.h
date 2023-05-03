@@ -25,14 +25,14 @@
 
 #define CUBE_DIM 64
 #define PLAYER_HEIGHT 32
-#define MAX_RAY_ITER 8
+#define MAX_RAY_ITER 32
 
 #define RAYS 512
 
 #define PI 3.1415926
 
 #define DELAYPROCESS 100000000
-
+#define MAX_DRAW_DIST 1000
 
 #define DBG_GRID_WALL 0xA9A9A9FF
 #define DBG_GRID_FREE 0xFFFFFFFF
@@ -157,6 +157,8 @@ typedef struct meta
 	point_t prev_mouse_pos;
 	float mouse_sensitivity;
 	float dist_to_proj;
+
+	float* shading_lut;
 }meta_t;
 
 /// @brief a structure that holds all information about a Cub3D map

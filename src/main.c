@@ -146,6 +146,24 @@ meta_t *setup()
 	meta->fps_counter.nbFrames = 0;
 	meta->prev_mouse_pos = (point_t){512,512};
 	meta->mouse_sensitivity = 1.f;
+
+
+	//currently linear decrease
+	meta->shading_lut = malloc(sizeof(float) * MAX_DRAW_DIST);
+	float falloff_mult = 1;
+	float step_val = (float)1/MAX_DRAW_DIST * falloff_mult;
+	float val = 1;
+	for (int i = 0; i < MAX_DRAW_DIST; i++)
+	{
+		meta->shading_lut[i] = val;
+		//val = (float)(pow((double)i,2)/100000);
+		if(val > 0)
+			val -= step_val;
+		else
+			val = 0;
+		printf("val at [%d] = %f\n",i,meta->shading_lut[i]);
+	}
+
 	return meta;
 }
 
@@ -153,6 +171,7 @@ void free_meta(meta_t* meta)
 {
 	free_map(meta->map);
 	free(meta->raycaster.rays);
+	free(meta->shading_lut);
 	free(meta);
 }
 

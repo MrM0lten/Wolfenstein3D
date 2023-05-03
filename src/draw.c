@@ -34,7 +34,7 @@ void drawline(mlx_image_t* image, point_t start, point_t end, int color)
 	}
 }
 
-void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t screen_pos, float wall_height)
+void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t screen_pos, float wall_height,float* color_lut)
 {
 	uint32_t col;
 	int x_text;
@@ -55,16 +55,16 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 			it += delta;
 			y_text++;
 		}
-		col = (uint32_t)texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)] << 3 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] << 2 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)] << 1 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)] << 0 * 8;
+		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)] * color_lut[(int)ray->len]) << 3 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] * color_lut[(int)ray->len]) << 2 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)] * color_lut[(int)ray->len]) << 1 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)]) << 0 * 8  ;
 		//printf("pixel pos [%d][%d]\n", screen_pos.x, i + start_pos_y);
 		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y}, col);
 	}
 }
 
-void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_t screen_pos, float wall_height)
+void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_t screen_pos, float wall_height,float* color_lut)
 {
 	uint32_t col;
 	int x_text;
@@ -85,10 +85,11 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 			it += delta;
 			y_text++;
 		}
-		col = (uint32_t)texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)] << 3 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] << 2 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)] << 1 * 8
-			| (uint32_t)texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)] << 0 * 8;
+		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)]* color_lut[(int)ray->len]) << 3 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)]* color_lut[(int)ray->len]) << 2 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)]* color_lut[(int)ray->len]) << 1 * 8
+			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)]) << 0 * 8;
+		//printf("col = %u\n",col);
 		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y}, col);
 	}
 }
@@ -190,16 +191,17 @@ void draw_scene(void *param)
 		//printf("Before first drawline\n");
 		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
 		//printf("After first drawline\n");
+		printf("len = %f\n",rayc->rays[i].len);
 		if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_north, wall_upper, wall_height);
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_north, wall_upper, wall_height,meta->shading_lut);
 		else if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_DOOR) //
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_door, wall_upper, wall_height);
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_door, wall_upper, wall_height,meta->shading_lut);
 		else if(rayc->rays[i].hit_dir == DIR_SOUTH && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_south, wall_upper, wall_height);
+			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_south, wall_upper, wall_height,meta->shading_lut);
 		else if(rayc->rays[i].hit_dir == DIR_WEST && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_west, wall_upper, wall_height);
+			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_west, wall_upper, wall_height,meta->shading_lut);
 		else if(rayc->rays[i].hit_dir == DIR_EAST && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_east, wall_upper, wall_height);
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_east, wall_upper, wall_height,meta->shading_lut);
 		else
 			drawline(meta->main_scene, wall_upper, wall_lower, meta->map->col_ceil);
 		//printf("Before second drawline\n");
