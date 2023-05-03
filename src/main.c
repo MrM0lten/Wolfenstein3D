@@ -21,14 +21,42 @@ void ft_hook(void* param)
 		player->dx = cos(2*PI - player->a) * 5;
 		player->dy = sin(player->a) * 5;
 	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_UP)) {
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_UP) || mlx_is_key_down(meta->mlx, MLX_KEY_W)) {
 		player->pos.x += player->dx;
 		player->pos.y += player->dy;
 	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN)) {
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN || mlx_is_key_down(meta->mlx, MLX_KEY_S))) {
 		player->pos.x -= player->dx;
 		player->pos.y -= player->dy;
 	}
+}
+
+//calculates the player rotation based on the current and previous mouse positon
+void mouse_rot(double xpos, double ypos, void* param)
+{
+	meta_t* meta = param;
+	player_t *player = &meta->player;
+	float mouse_dx;
+	if((float)xpos < meta->prev_mouse_pos.x)
+	{
+		mouse_dx = meta->prev_mouse_pos.x - xpos;
+		player->a -= (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
+		if(player->a < 0)
+			player->a += 2 * PI;
+		player->dx = cos(player->a) * 5;
+		player->dy = sin(player->a) * 5;
+	}
+	else
+	{
+		mouse_dx = xpos - meta->prev_mouse_pos.x;
+		player->a += (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
+		if(player->a > 2 * PI)
+			player->a -= 2 * PI;
+		player->dx = cos(2*PI - player->a) * 5;
+		player->dy = sin(player->a) * 5;
+	}
+	printf("[%f][%f]\n",xpos,ypos);
+	meta->prev_mouse_pos.x = (float)xpos;
 }
 
 int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
@@ -56,10 +84,14 @@ int setup_mlx(meta_t *meta)
 	if (meta->mlx == NULL) {}
 	meta->main_scene = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
 	if (meta->main_scene == NULL) {}
+
+
 	mlx_loop_hook(meta->mlx, draw_scene, meta);
 	mlx_loop_hook(meta->mlx, draw_debugmap, meta);
-	mlx_loop_hook(meta->mlx, ft_hook, meta);
 	mlx_loop_hook(meta->mlx, count_frames, meta);
+	mlx_loop_hook(meta->mlx, ft_hook, meta);
+	mlx_cursor_hook(meta->mlx,mouse_rot,meta);
+
 	return 1;
 }
 
@@ -101,6 +133,7 @@ meta_t *setup()
 	meta->fps_counter.img = NULL;
 	meta->fps_counter.lastTime = get_time();
 	meta->fps_counter.nbFrames = 0;
+	meta->mouse_sensitivity = 1.f;
 	return meta;
 }
 

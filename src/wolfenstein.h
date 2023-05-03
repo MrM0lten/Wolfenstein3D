@@ -24,7 +24,7 @@
 #define SQ_DIM MAP_DIM
 
 #define CUBE_DIM 64
-#define MAX_RAY_ITER 8
+#define MAX_RAY_ITER 32
 
 #define RAYS 512
 
@@ -135,6 +135,8 @@ typedef struct meta
 	raycaster_t raycaster;
 
 	fps_counter_t fps_counter;
+	point_t prev_mouse_pos;
+	float mouse_sensitivity;
 	float dist_to_proj;
 }meta_t;
 

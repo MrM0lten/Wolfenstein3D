@@ -104,7 +104,7 @@ void draw_debugplayer(mlx_image_t *img, player_t *player,int ratio)
 	}
 
 	float line_mult = 5;
-	debug_player(player);
+	//debug_player(player);
 	drawline(img, p_gridpos, (point_t){p_gridpos.x+player->dx*line_mult, p_gridpos.y+player->dy*line_mult},0xFF0000FF);
 }
 
@@ -177,7 +177,7 @@ void draw_scene(void *param)
 	//debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
 		wall_height = (64 * meta->dist_to_proj)/(rayc->rays[i].len);
-		printf("wallheight = %f\n", wall_height);
+		//printf("wallheight = %f\n", wall_height);
 		wall_upper.x = i;
 		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
 		wall_lower.x = i;
