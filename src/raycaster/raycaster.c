@@ -17,7 +17,7 @@ void print_raydata()
 	}
 }
 
-
+//note: jean changed the return value to the map pos in array to diff wall from door
 int is_wall(double rx, double ry, meta_t* meta)
 {
 	if (rx < 0 || ry < 0)
@@ -25,8 +25,8 @@ int is_wall(double rx, double ry, meta_t* meta)
 	int mx = (int)rx>>6;
 	int my = (int)ry>>6;
 	int mp = my * meta->map->map_x + mx;
-	if (mp >= 0 && mp <  meta->map->map_dim && meta->map->map[mp] == 1) {
-		return 1;
+	if (mp >= 0 && mp <  meta->map->map_dim && (meta->map->map[mp] == GD_WALL || meta->map->map[mp] == GD_DOOR)) {
+		return meta->map->map[mp];
 	}
 	return 0;
 }
@@ -100,6 +100,7 @@ ray raycast(double radian, meta_t* meta)
 			ray.hit_dir = DIR_SOUTH;
 	}
 	ray.dir = radian;
+	ray.hit_id = is_wall(ray.hit.x, ray.hit.y, meta);
 	return ray;
 }
 

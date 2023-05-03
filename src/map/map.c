@@ -44,6 +44,12 @@ void store_map_texture(map_t* map,char *line)
             free_and_warn(&map->text_east);
         map->text_east = ft_substr(line,i,len-i);
     }
+    else if( !ft_strncmp(line,"DO",2))
+    {
+        if(map->text_door != NULL)
+            free_and_warn(&map->text_door);
+        map->text_door = ft_substr(line,i,len-i);
+    }
 }
 
 void store_map_color(map_t* map,char *line)
@@ -122,11 +128,13 @@ static void fill_map(map_t* map,t_list* lst_line)
         while(content[i] && content[i] != '\n')
         {
             if(content[i] == '0')
-                map->map[pos] = 0;
+                map->map[pos] = GD_FREE;
             else if(content[i] == '1')
-                map->map[pos] = 1;
+                map->map[pos] = GD_WALL;
+            else if(content[i] == '2')
+                map->map[pos] = GD_DOOR;
             else if(content[i] == ' ')
-                map->map[pos] = 2;
+                map->map[pos] = GD_VOID;
             else if(content[i] == 'N')
             {
                 if(map->p_pos_x != -1)
@@ -204,6 +212,20 @@ void store_map_array(map_t* map,char *line,int fd)
     display_map_data(map);
     ft_lstclear(&lst_line,free);
 }
+//tries finding one of several valid texture ids, 1 = found,0 = not found
+int find_texture_id(char *line)
+{
+    char * ids[] = {"NO","SO","WE","EA","DO",NULL};
+
+    int i = 0;
+    while(ids[i])
+    {
+        if(!ft_strncmp(line,ids[i],2))
+            return 1;
+        i++;
+    }
+    return 0;
+}
 
 enum map_type_id identify_line(char *line)
 {
@@ -212,8 +234,7 @@ enum map_type_id identify_line(char *line)
     size_t len = ft_strlen((const char*)line);
     if(len < 2)
         return MP_ERR;
-    if(!ft_strncmp(line,"NO",2) || !ft_strncmp(line,"SO",2)
-        || !ft_strncmp(line,"WE",2) || !ft_strncmp(line,"EA",2))
+    if(find_texture_id(line))
         return MP_TEXT;
     else if(!ft_strncmp(line,"F",1) || !ft_strncmp(line,"C",1))
         return MP_COL;
@@ -231,10 +252,12 @@ map_t* init_map(void)
     map->text_south = NULL;
     map->text_east = NULL;
     map->text_west = NULL;
+    map->text_door = NULL;
 	map->texture_north = NULL;
 	map->texture_south = NULL;
 	map->texture_east = NULL;
 	map->texture_west = NULL;
+    map->texture_door = NULL;
     map->col_ceil = 0; // black, but no transparency
     map->col_floor = 0; // black, but no transparency
     map->p_orient = -1;
@@ -281,11 +304,6 @@ map_t* read_map(char *path)
         free_map(map);
         return NULL;
     }
-	map->texture_north = mlx_load_png(map->text_north);
-	map->texture_south = mlx_load_png(map->text_south);
-	map->texture_east = mlx_load_png(map->text_east);
-	map->texture_west = mlx_load_png(map->text_west);
-
     return map;
 }
 
@@ -310,8 +328,8 @@ int is_walled(int x, int y,map_t* map)
         return 0;
 
     //need to check every element as map could have 'holes'
-    if(get_grid_val(x+1,y,map) == 2 || get_grid_val(x-1,y,map) == 2
-    || get_grid_val(x,y+1,map) == 2 || get_grid_val(x,y-1,map) == 2)
+    if(get_grid_val(x+1,y,map) == GD_VOID || get_grid_val(x-1,y,map) == GD_VOID
+    || get_grid_val(x,y+1,map) == GD_VOID || get_grid_val(x,y-1,map) == GD_VOID)
         return 0;
     return 1;
 }
@@ -338,6 +356,10 @@ int validate_map(map_t* map)
         log_string("No WEST texture found",2);
         ret = 0;
     }
+    if(map->text_door == NULL || access(map->text_door,F_OK | R_OK)){
+        log_string("No Door texture found",1);
+        ret = 0;
+    }
 
     if(map->col_ceil == 0){
         log_string("No Ceiling color found",2);
@@ -360,7 +382,7 @@ int validate_map(map_t* map)
         for (int x = 0; x < map->map_x; x++)
         {
             val = map->map[y * map->map_x + x];
-            if(val == 2)
+            if(val == GD_VOID)
                 continue;
             //printf("val in loop= %d\n",val);
             if(val == -1 || !is_walled(x,y,map))
@@ -371,6 +393,14 @@ int validate_map(map_t* map)
             }
         }
     }
+
+    map->texture_north = mlx_load_png(map->text_north);
+	map->texture_south = mlx_load_png(map->text_south);
+	map->texture_east = mlx_load_png(map->text_east);
+	map->texture_west = mlx_load_png(map->text_west);
+    map->texture_door = mlx_load_png(map->text_door);
+
+
     return ret;
 }
 
@@ -380,6 +410,7 @@ void free_map(map_t *map)
     free(map->text_south);
     free(map->text_east);
     free(map->text_west);
+    free(map->text_door);
 
     free(map->texture_north->pixels);
     free(map->texture_north);
@@ -389,6 +420,8 @@ void free_map(map_t *map)
     free(map->texture_south);
     free(map->texture_west->pixels);
     free(map->texture_west);
+    free(map->texture_door->pixels);
+    free(map->texture_door);
 
     free(map->map);
     free(map);

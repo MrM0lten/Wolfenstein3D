@@ -24,13 +24,27 @@
 #define SQ_DIM MAP_DIM
 
 #define CUBE_DIM 64
-#define MAX_RAY_ITER 32
+#define MAX_RAY_ITER 8
 
 #define RAYS 512
 
 #define PI 3.1415926
 
 #define DELAYPROCESS 100000000
+
+
+#define DBG_GRID_WALL 0xA9A9A9FF
+#define DBG_GRID_FREE 0xFFFFFFFF
+#define DBG_GRID_VOID 0x000000FF
+#define DBG_GRID_DOOR 0x393939FF
+#define DBG_GRID_BORDER 0x303030FF
+
+enum map_type_id{
+    MP_ERR = 0,
+    MP_TEXT,
+    MP_COL,
+    MP_MAP,
+};
 
 typedef struct debug_s
 {
@@ -58,9 +72,8 @@ typedef struct ray
 		DIR_EAST,
 		DIR_WEST
 	} hit_dir;
+	enum map_type_id hit_id;
 }ray;
-
-extern ray ray_data[RAYS];
 
 typedef struct raycaster
 {
@@ -80,11 +93,14 @@ typedef struct player
 	float speed;
 }player_t;
 
-enum map_type_id{
-    MP_ERR = 0,
-    MP_TEXT,
-    MP_COL,
-    MP_MAP,
+
+
+enum grid_type
+{
+	GD_FREE = 0,
+	GD_WALL = 1,
+	GD_DOOR = 2,
+	GD_VOID = 9,
 };
 
 typedef struct map_s
@@ -93,11 +109,13 @@ typedef struct map_s
     char *text_south;
     char *text_west;
     char *text_east;
+	char *text_door;
 
 	mlx_texture_t* texture_north;
 	mlx_texture_t* texture_south;
 	mlx_texture_t* texture_east;
 	mlx_texture_t* texture_west;
+	mlx_texture_t* texture_door;
 
     uint32_t col_floor;
     uint32_t col_ceil;
@@ -171,9 +189,6 @@ void draw_square(mlx_image_t* image, point_t start, int len, uint32_t fill, uint
 void update_fps_counter(meta_t *meta);
 void count_frames(void* param);
 size_t	get_time(void);
-
-
-int is_up(double radian);
 
 map_t* init_map(void);
 map_t* read_map(char *path);

@@ -39,13 +39,13 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 	uint32_t col;
 	int x_text;
 	if(ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH)
-		x_text = (int)ray->hit.x % 64;
+		x_text = (int)ray->hit.x % CUBE_DIM;
 	else
-		x_text = (int)ray->hit.y % 64;
+		x_text = (int)ray->hit.y % CUBE_DIM;
 
 	int start_pos_y = (int)((IMG_HEIGHT - wall_height)/2);
 	int end_pos_y = (int)((IMG_HEIGHT + wall_height)/2);
-	float delta =(float)(end_pos_y - start_pos_y)/64;
+	float delta =(float)(end_pos_y - start_pos_y)/CUBE_DIM;
 	float it = delta;
 	int y_text = 0;
 	for (int i = 0; i < end_pos_y - start_pos_y; i++)
@@ -69,13 +69,13 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	uint32_t col;
 	int x_text;
 	if(ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH)
-		x_text = 64 - ((int)ray->hit.x % 64) - 1;
+		x_text = CUBE_DIM - ((int)ray->hit.x % CUBE_DIM) - 1;
 	else
-		x_text = 64 - ((int)ray->hit.y % 64) - 1;
+		x_text = CUBE_DIM - ((int)ray->hit.y % CUBE_DIM) - 1;
 
 	int start_pos_y = (int)((IMG_HEIGHT - wall_height) / 2);
 	int end_pos_y = (int)((IMG_HEIGHT + wall_height) / 2);
-	float delta =(float)(end_pos_y - start_pos_y) / 64;
+	float delta =(float)(end_pos_y - start_pos_y) / CUBE_DIM;
 	float it = delta;
 	int y_text = 0;
 	for (int i = 0; i < end_pos_y - start_pos_y; i++)
@@ -122,11 +122,15 @@ void draw_debugmap(void *param)
 	debug_t* debug = &meta->debugmap;
 	for (int i = 0; i < meta->map->map_x; i++) {
 		for (int j = 0; j < meta->map->map_y; j++) {
-			if (meta->map->map[j * meta->map->map_x + i] == 1) {
-				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, 0xA9A9A9FF, 0x303030FF);
+			if (meta->map->map[j * meta->map->map_x + i] == GD_WALL) {
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_WALL, DBG_GRID_BORDER);
 			}
+			else if(meta->map->map[j * meta->map->map_x + i] == GD_DOOR)
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_DOOR, DBG_GRID_BORDER);
+			else if(meta->map->map[j * meta->map->map_x + i] == GD_VOID)
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_VOID, DBG_GRID_BORDER);
 			else {
-				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, 0xFFFFFFFF, 0x303030FF);
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_FREE, DBG_GRID_BORDER);
 			}
 
 
@@ -176,7 +180,7 @@ void draw_scene(void *param)
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
 	//debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-		wall_height = (64 * meta->dist_to_proj)/(rayc->rays[i].len);
+		wall_height = (CUBE_DIM * meta->dist_to_proj)/(rayc->rays[i].len);
 		//printf("wallheight = %f\n", wall_height);
 		wall_upper.x = i;
 		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
@@ -186,14 +190,18 @@ void draw_scene(void *param)
 		//printf("Before first drawline\n");
 		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
 		//printf("After first drawline\n");
-		if (rayc->rays[i].hit_dir == DIR_NORTH)
+		if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_WALL)
 			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_north, wall_upper, wall_height);
-		else if(rayc->rays[i].hit_dir == DIR_SOUTH)
+		else if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_DOOR) //
+			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_door, wall_upper, wall_height);
+		else if(rayc->rays[i].hit_dir == DIR_SOUTH && rayc->rays[i].hit_id == GD_WALL)
 			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_south, wall_upper, wall_height);
-		else if(rayc->rays[i].hit_dir == DIR_WEST)
+		else if(rayc->rays[i].hit_dir == DIR_WEST && rayc->rays[i].hit_id == GD_WALL)
 			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_west, wall_upper, wall_height);
-		else
+		else if(rayc->rays[i].hit_dir == DIR_EAST && rayc->rays[i].hit_id == GD_WALL)
 			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_east, wall_upper, wall_height);
+		else
+			drawline(meta->main_scene, wall_upper, wall_lower, meta->map->col_ceil);
 		//printf("Before second drawline\n");
 		drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
 		//printf("After second drawline\n");

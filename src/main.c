@@ -25,7 +25,7 @@ void ft_hook(void* param)
 		player->pos.x += player->dx;
 		player->pos.y += player->dy;
 	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN || mlx_is_key_down(meta->mlx, MLX_KEY_S))) {
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN) || mlx_is_key_down(meta->mlx, MLX_KEY_S)) {
 		player->pos.x -= player->dx;
 		player->pos.y -= player->dy;
 	}
@@ -43,8 +43,8 @@ void mouse_rot(double xpos, double ypos, void* param)
 		player->a -= (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
 		if(player->a < 0)
 			player->a += 2 * PI;
-		player->dx = cos(player->a) * 5;
-		player->dy = sin(player->a) * 5;
+		player->dx = cos(player->a) * player->speed;
+		player->dy = sin(player->a) * player->speed;
 	}
 	else
 	{
@@ -52,10 +52,10 @@ void mouse_rot(double xpos, double ypos, void* param)
 		player->a += (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
 		if(player->a > 2 * PI)
 			player->a -= 2 * PI;
-		player->dx = cos(2*PI - player->a) * 5;
-		player->dy = sin(player->a) * 5;
+		player->dx = cos(2*PI - player->a) * player->speed;
+		player->dy = sin(player->a) * player->speed;
 	}
-	printf("[%f][%f]\n",xpos,ypos);
+	//printf("[%f][%f]\n",xpos,ypos);
 	meta->prev_mouse_pos.x = (float)xpos;
 }
 
@@ -133,6 +133,7 @@ meta_t *setup()
 	meta->fps_counter.img = NULL;
 	meta->fps_counter.lastTime = get_time();
 	meta->fps_counter.nbFrames = 0;
+	meta->prev_mouse_pos = (point_t){512,512};
 	meta->mouse_sensitivity = 1.f;
 	return meta;
 }

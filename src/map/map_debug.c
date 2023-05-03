@@ -34,7 +34,7 @@ void print_map(map_t *map)
     {
         if(i % map->map_x == 0)
             printf("|");
-        if(map->map[i] == 2)
+        if(map->map[i] == GD_VOID)
             printf(" ");
         else if(map->map[i] == -1)
             printf("?");
