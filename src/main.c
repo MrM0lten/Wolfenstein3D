@@ -7,14 +7,14 @@ void ft_hook(void* param)
 
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_ESCAPE))
 		mlx_close_window(meta->mlx);
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_LEFT)) {
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_LEFT)|| mlx_is_key_down(meta->mlx, MLX_KEY_A)) {
 		player->a -=0.1;
 		if(player->a < 0)
 			player->a += 2 * PI;
 		player->dx = cos(player->a) * 5;
 		player->dy = sin(player->a) * 5;
 	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_RIGHT)) {
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_RIGHT) || mlx_is_key_down(meta->mlx, MLX_KEY_D)) {
 		player->a +=0.1;
 		if(player->a > 2 * PI)
 			player->a -= 2 * PI;
@@ -28,6 +28,17 @@ void ft_hook(void* param)
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN) || mlx_is_key_down(meta->mlx, MLX_KEY_S)) {
 		player->pos.x -= player->dx;
 		player->pos.y -= player->dy;
+	}
+	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
+	{
+		ray ray = raycast(meta->player.a, meta);
+		if(ray.hit_id == GD_DOOR)
+		{
+			int mx = (int)ray.hit.x>>6;
+			int my = (int)ray.hit.y>>6;
+			int mp = my * meta->map->map_x + mx;
+			meta->map->map[mp] = GD_FREE;
+		}
 	}
 }
 
