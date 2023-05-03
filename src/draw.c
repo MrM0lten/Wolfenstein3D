@@ -180,7 +180,7 @@ void draw_scene(void *param)
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
 	//debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-		wall_height = (CUBE_DIM * meta->dist_to_proj)/(rayc->rays[i].len);
+		wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
 		//printf("wallheight = %f\n", wall_height);
 		wall_upper.x = i;
 		wall_upper.y = (int)(meta->win_height - wall_height) / 2;

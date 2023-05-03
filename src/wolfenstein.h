@@ -24,6 +24,7 @@
 #define SQ_DIM MAP_DIM
 
 #define CUBE_DIM 64
+#define PLAYER_HEIGHT 32
 #define MAX_RAY_ITER 8
 
 #define RAYS 512
