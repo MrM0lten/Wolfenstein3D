@@ -31,11 +31,22 @@ void ft_hook(void* param)
 	}
 }
 
-int setup_minimap(mlx_t *mlx, minimap_t* minimap, int width, int height)
+int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 {
-	minimap->width = width;
-	minimap->height = height;
-	minimap->img = mlx_new_image(mlx, width, height);
+	int grid_size_x = meta->debugmap.width/meta->map->map_x;
+	int grid_size_y = meta->debugmap.height/meta->map->map_y;
+
+	if(meta->map->map_x > meta->map->map_y)
+		debugmap->grid_size = meta->map->map_x;
+	else
+		debugmap->grid_size = meta->map->map_x;
+
+	debugmap->grid_size = height/find_next_pow(debugmap->grid_size);
+	debugmap->ratio = (CUBE_DIM/debugmap->grid_size);
+
+	debugmap->width = width;
+	debugmap->height = height;
+	debugmap->img = mlx_new_image(meta->mlx, width, height);
 	return 1;
 }
 
@@ -46,7 +57,7 @@ int setup_mlx(meta_t *meta)
 	meta->main_scene = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
 	if (meta->main_scene == NULL) {}
 	mlx_loop_hook(meta->mlx, draw_scene, meta);
-	mlx_loop_hook(meta->mlx, draw_minimap, meta);
+	mlx_loop_hook(meta->mlx, draw_debugmap, meta);
 	mlx_loop_hook(meta->mlx, ft_hook, meta);
 	//mlx_loop_hook(meta->mlx, count_frames, meta);
 	return 1;
@@ -54,8 +65,8 @@ int setup_mlx(meta_t *meta)
 
 int setup_player(player_t *player, point_t start_pos, double orientation)
 {
-	player->pos.x = start_pos.x * 64 + 32;
-	player->pos.y = start_pos.y * 64 + 32;
+	player->pos.x = start_pos.x * CUBE_DIM + CUBE_DIM/2;
+	player->pos.y = start_pos.y * CUBE_DIM + CUBE_DIM/2;
 	player->a = orientation;
 	player->speed = 5;
 	player->dx = cos(player->a) * player->speed;
@@ -83,7 +94,7 @@ meta_t *setup()
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
 	if(setup_raycaster(&meta->raycaster, RAYS)) {}
-	if(setup_minimap(meta->mlx,&meta->minimap,MINIMAP_WIDTH,MINIMAP_HEIGHT)){}
+	if(setup_debugmap(meta,&meta->debugmap,DEBUGMAP_WIDTH,DEBUGMAP_HEIGHT)){}
 
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
@@ -110,8 +121,8 @@ int main()
 {
 	meta_t *meta = setup();
 	if (meta == NULL) {}
-	//mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
-	mlx_image_to_window(meta->mlx, meta->minimap.img, 0, 0);
+	mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
+	mlx_image_to_window(meta->mlx, meta->debugmap.img, 512, 0);
 	mlx_loop(meta->mlx);
 	cleanup(meta);
 	return (0);

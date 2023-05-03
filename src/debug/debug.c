@@ -1,5 +1,10 @@
 #include "wolfenstein.h"
 
+void debug_point(point_t* point)
+{
+     printf("Point: [%f][%f]\n",point->x,point->y);
+}
+
 void debug_player(player_t* player)
 {
     printf("----------------PLAYER---------------\n");

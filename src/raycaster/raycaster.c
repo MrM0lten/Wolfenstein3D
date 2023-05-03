@@ -37,15 +37,15 @@ point_t raycast_hor(double radian, meta_t* meta)
 	if (radian > PI) {
 		ry = (((int)py>>6)<<6)-0.002;
 		rx = px-((py-ry)/tan(radian));
-		yo = -64, xo = yo/tan(radian);
+		yo = -CUBE_DIM, xo = yo/tan(radian);
 	}
 	else if (radian < PI) {
-		ry = (((int)py>>6)<<6) + 64;
+		ry = (((int)py>>6)<<6) + CUBE_DIM;
 		rx = px-((py-ry)/tan(radian));
-		yo = 64, xo = yo/tan(radian);
+		yo = CUBE_DIM, xo = yo/tan(radian);
 	}
-	if (radian==0 || radian==PI) {return (point_t){px,py};}
-	for (int i=0; i<8 && !is_wall(rx, ry, meta); i++) {
+	if (radian == 0 || radian == PI) {return (point_t){px,py};}
+	for (int i = 0 ; i < MAX_RAY_ITER && !is_wall(rx, ry, meta); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
 	}
@@ -58,15 +58,15 @@ point_t raycast_ver(double radian, meta_t* meta)
 	if (radian > PI/2 && radian < 1.5*PI) {
 		rx = (((int)px>>6)<<6)-0.002;
 		ry = py - (tan(radian) * (px-rx));
-		xo = -64, yo = tan(radian) * xo;
+		xo = -CUBE_DIM, yo = tan(radian) * xo;
 	}
 	else if (radian < PI/2 || radian > 1.5*PI) {
-		rx = (((int)px>>6)<<6) + 64;
+		rx = (((int)px>>6)<<6) + CUBE_DIM;
 		ry = py - (tan(radian) * (px-rx));
-		xo = 64, yo = tan(radian) * xo;
+		xo = CUBE_DIM, yo = tan(radian) * xo;
 	}
 	if (radian == PI / 2 || radian == PI * 1.5) {return (point_t){px,py};}
-	for (int i = 0; i < 8 && !is_wall(rx, ry, meta); i++) {
+	for (int i = 0; i < MAX_RAY_ITER && !is_wall(rx, ry, meta); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
 	}

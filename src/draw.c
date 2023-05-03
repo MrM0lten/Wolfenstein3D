@@ -93,50 +93,51 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	}
 }
 
-void draw_player(mlx_image_t *img, player_t *player)
+void draw_debugplayer(mlx_image_t *img, player_t *player,int ratio)
 {
 	int p_size = 6;
+	point_t p_gridpos ={(player->pos.x/ratio),(player->pos.y/ratio)};
 	for (int i = 0; i < p_size; i++)
 	{
 		for (int j = 0; j < p_size; j++)
-			mlx_put_pixel(img, player->pos.x+j-p_size/2, player->pos.y+i-p_size/2, 0xFF0000FF);
+			my_mlx_put_pixel(img,(point_t){p_gridpos.x+j-p_size/2,p_gridpos.y+i-p_size/2},0xFF0000FF);
 	}
 
 	float line_mult = 5;
-	drawline(img, player->pos, (point_t){player->pos.x+player->dx*line_mult,player->pos.y+player->dy*line_mult},0xFF0000FF);
+	debug_player(player);
+	drawline(img, p_gridpos, (point_t){p_gridpos.x+player->dx*line_mult, p_gridpos.y+player->dy*line_mult},0xFF0000FF);
 }
 
-void draw_minimap(void *param)
+int find_next_pow(int val)
+{
+	int n = 1;
+	while(n < val)
+		n *= 2;
+	return n;
+}
+
+void draw_debugmap(void *param)
 {
 	meta_t *meta = param;
-	int grid_size_x = meta->minimap.width/meta->map->map_x;
-	int grid_size_y = meta->minimap.height/meta->map->map_y;
+	debug_t* debug = &meta->debugmap;
 	for (int i = 0; i < meta->map->map_x; i++) {
 		for (int j = 0; j < meta->map->map_y; j++) {
 			if (meta->map->map[j * meta->map->map_x + i] == 1) {
-				draw_square(meta->minimap.img, (point_t){i * grid_size_x, j * grid_size_x}, grid_size_x, 0xA9A9A9FF, 0x303030FF);
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, 0xA9A9A9FF, 0x303030FF);
 			}
 			else {
-				draw_square(meta->minimap.img, (point_t){i * grid_size_y, j * grid_size_y}, grid_size_y, 0xFFFFFFFF, 0x303030FF);
+				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, 0xFFFFFFFF, 0x303030FF);
 			}
 
 
 		}
 	}
-	//		draw_square(meta->image_window, j, i, meta->map->map[(i*8)+j]);
 
-	draw_player(meta->minimap.img, &meta->player);
-
+	point_t p_gridpos ={(meta->player.pos.x/debug->ratio),(meta->player.pos.y/debug->ratio)};
 	for (int i = 0; i < meta->raycaster.num_rays; i++)
-	{
-		debug_ray(&meta->raycaster.rays[i]);
-		drawline(meta->minimap.img,meta->player.pos,meta->raycaster.rays[i].hit,0xFF00FFFF);
-	}
+		drawline(meta->debugmap.img,p_gridpos,(point_t){meta->raycaster.rays[i].hit.x/debug->ratio,meta->raycaster.rays[i].hit.y/debug->ratio},0xFF00FFFF);
+	draw_debugplayer(meta->debugmap.img, &meta->player,debug->ratio);
 
-	//raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
-	//debug_meta(meta);
-	//printf("in raycaster calculated len = %f\n", meta->raycaster.rays);
-	//draw_scene(meta);
 }
 
 void draw_square(mlx_image_t *image, point_t start, int len, uint32_t fill, uint32_t bor)
@@ -147,11 +148,11 @@ void draw_square(mlx_image_t *image, point_t start, int len, uint32_t fill, uint
 			my_mlx_put_pixel(image, (point_t){start.x + x,start.y + y}, fill);
 		}
 	}
-	// Border
+	// Border note: removed top and left border otherwise line thickness is 2
 	for (int i = 0; i < len; i++) {
-		my_mlx_put_pixel(image, (point_t){start.x + i, start.y}, bor);
+		//my_mlx_put_pixel(image, (point_t){start.x + i, start.y}, bor);
 		my_mlx_put_pixel(image, (point_t){start.x + i, start.y + len - 1}, bor);
-		my_mlx_put_pixel(image, (point_t){start.x, start.y + i}, bor);
+		//my_mlx_put_pixel(image, (point_t){start.x, start.y + i}, bor);
 		my_mlx_put_pixel(image, (point_t){start.x + len - 1, start.y + i}, bor);
 	}
 }
@@ -173,7 +174,7 @@ void draw_scene(void *param)
 	point_t wall_lower;
 	float wall_height;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
-	debug_raycaster(rayc);
+	//debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
 		wall_height = (64 * meta->dist_to_proj)/(rayc->rays[i].len);
 		printf("wallheight = %f\n", wall_height);

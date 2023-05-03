@@ -12,29 +12,34 @@
 #include "MLX42.h"
 #include "libft.h"
 
-#define IMG_WIDTH 1024
+#define IMG_WIDTH 512
 #define IMG_HEIGHT 512
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 512
-#define MINIMAP_HEIGHT 512
-#define MINIMAP_WIDTH 512
+#define DEBUGMAP_HEIGHT 512
+#define DEBUGMAP_WIDTH 512
 #define MAP_HEIGHT 8
 #define MAP_WIDTH 8
 #define MAP_DIM MAP_HEIGHT * MAP_WIDTH
 #define SQ_DIM MAP_DIM
 
-#define RAYS 1024
+#define CUBE_DIM 64
+#define MAX_RAY_ITER 8
+
+#define RAYS 512
 
 #define PI 3.1415926
 
 #define DELAYPROCESS 100000000
 
-typedef struct minimap_s
+typedef struct debug_s
 {
 	mlx_image_t *img;
 	int width;
 	int height;
-} minimap_t;
+	int grid_size;
+	int ratio;
+} debug_t;
 
 typedef struct point_s
 {
@@ -126,7 +131,7 @@ typedef struct meta
 	mlx_image_t *main_scene;
 	mlx_t* mlx;
 	map_t *map;
-	minimap_t minimap;
+	debug_t debugmap;
 	raycaster_t raycaster;
 
 	fps_counter_t fps_counter;
@@ -156,7 +161,7 @@ void print_raydata();
 
 // Drawing
 void drawline(mlx_image_t* image, point_t start, point_t end, int color);
-void draw_minimap(void* param);
+void draw_debugmap(void* param);
 void draw_scene(void *param);
 void draw_square(mlx_image_t* image, point_t start, int len, uint32_t fill, uint32_t bor);
 
@@ -190,5 +195,11 @@ void debug_meta(meta_t *meta);
 void debug_raycaster(raycaster_t* raycaster);
 void debug_player(player_t* player);
 void debug_ray(ray *ray);
+void debug_point(point_t* point);
+
+
+//utilities
+//returns the next bigger power of 2 value given a value e.g 5 -> 8
+int find_next_pow(int val);
 
 #endif
