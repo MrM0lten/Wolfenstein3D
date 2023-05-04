@@ -5,6 +5,29 @@ void ft_hook(void* param)
 	meta_t* meta = param;
 	player_t *player = &meta->player;
 
+
+	//handle player collision, by creation a vector in front and behind the player
+	int p_grid_x = player->pos.x/CUBE_DIM;
+	int p_grid_y = player->pos.y/CUBE_DIM;
+	int offset_x = 0;
+	int offset_y = 0;
+	if(player->dx > 0)
+		offset_x = PLAYER_COL_DIST;
+	else
+		offset_x = -PLAYER_COL_DIST;
+	if(player->dy > 0)
+		offset_y = PLAYER_COL_DIST;
+	else
+		offset_y = -PLAYER_COL_DIST;
+
+	int p_posgrid_offset_x = (player->pos.x+offset_x)/CUBE_DIM;
+	int p_posgrid_offset_y = (player->pos.y+offset_y)/CUBE_DIM;
+	int p_neggrid_offset_x = (player->pos.x-offset_x)/CUBE_DIM;
+	int p_neggrid_offset_y = (player->pos.y-offset_y)/CUBE_DIM;
+
+	//printf("player grid = [%d][%d]\n",p_grid_x,p_grid_y);
+	//printf("player offset grid = [%d][%d]\n",p_posgrid_offset_x,p_posgrid_offset_y);
+	//printf("player delta = [%f][%f]\n",player->dx,player->dy);
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_ESCAPE))
 		mlx_close_window(meta->mlx);
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_LEFT)|| mlx_is_key_down(meta->mlx, MLX_KEY_A)) {
@@ -22,12 +45,17 @@ void ft_hook(void* param)
 		player->dy = sin(player->a) * 5;
 	}
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_UP) || mlx_is_key_down(meta->mlx, MLX_KEY_W)) {
-		player->pos.x += player->dx;
-		player->pos.y += player->dy;
+
+		if(meta->map->map[p_grid_y * meta->map->map_x + p_posgrid_offset_x] == GD_FREE)
+			player->pos.x += player->dx;
+		if(meta->map->map[p_posgrid_offset_y * meta->map->map_x + p_grid_x] == GD_FREE)
+			player->pos.y += player->dy;
 	}
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN) || mlx_is_key_down(meta->mlx, MLX_KEY_S)) {
-		player->pos.x -= player->dx;
-		player->pos.y -= player->dy;
+		if(meta->map->map[p_grid_y * meta->map->map_x + p_neggrid_offset_x] == GD_FREE)
+			player->pos.x -= player->dx;
+		if(meta->map->map[p_neggrid_offset_y * meta->map->map_x + p_grid_x] == GD_FREE)
+			player->pos.y -= player->dy;
 	}
 	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
 	{

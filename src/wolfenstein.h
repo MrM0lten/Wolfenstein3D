@@ -25,6 +25,7 @@
 
 #define CUBE_DIM 64
 #define PLAYER_HEIGHT 32
+#define PLAYER_COL_DIST 10
 #define MAX_RAY_ITER 32
 
 #define RAYS 512
@@ -45,6 +46,14 @@ enum map_type_id{
     MP_TEXT,
     MP_COL,
     MP_MAP,
+};
+
+enum grid_type
+{
+	GD_FREE = 0,
+	GD_WALL = 1,
+	GD_DOOR = 2,
+	GD_VOID = 9,
 };
 
 typedef struct debug_s
@@ -93,16 +102,6 @@ typedef struct player
 	float fov;
 	float speed;
 }player_t;
-
-
-
-enum grid_type
-{
-	GD_FREE = 0,
-	GD_WALL = 1,
-	GD_DOOR = 2,
-	GD_VOID = 9,
-};
 
 typedef struct map_s
 {
