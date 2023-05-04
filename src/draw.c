@@ -45,15 +45,29 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 
 	int start_pos_y = (int)((IMG_HEIGHT - wall_height)/2);
 	int end_pos_y = (int)((IMG_HEIGHT + wall_height)/2);
-	float delta =(float)(end_pos_y - start_pos_y)/CUBE_DIM;
+	int total_pixel_to_draw = end_pos_y - start_pos_y;
+	float delta =(float)(total_pixel_to_draw)/CUBE_DIM;
 	float it = delta;
 	int y_text = 0;
-	for (int i = 0; i < end_pos_y - start_pos_y; i++)
+	//printf("ytext start [%d], end [%d], start -end [%d]\n",start_pos_y,end_pos_y,total_pixel_to_draw);
+	//printf("delta = [%f]\n",delta);
+	float negdelta = (float)CUBE_DIM/total_pixel_to_draw;
+	float negit = negdelta;
+	//printf("\n");
+	for (int i = 0; i < total_pixel_to_draw; i++)
 	{
-		it--;
-		if (it < 0) {
-			it += delta;
-			y_text++;
+		if(total_pixel_to_draw >= 64) {
+			it--;
+			if (it < 0) {
+				it += delta;
+				y_text++;
+			}
+		}
+		else {
+			//printf("in here\n");
+			negit += negdelta;
+			y_text = (int)negit;
+			//printf("ytext = [%d]\n",y_text);
 		}
 		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)] * color_lut[(int)ray->len]) << 3 * 8
 			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] * color_lut[(int)ray->len]) << 2 * 8
@@ -75,15 +89,26 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 
 	int start_pos_y = (int)((IMG_HEIGHT - wall_height) / 2);
 	int end_pos_y = (int)((IMG_HEIGHT + wall_height) / 2);
+	int total_pixel_to_draw = end_pos_y - start_pos_y;
 	float delta =(float)(end_pos_y - start_pos_y) / CUBE_DIM;
 	float it = delta;
 	int y_text = 0;
+	float negdelta = (float)CUBE_DIM/total_pixel_to_draw;
+	float negit = negdelta;
 	for (int i = 0; i < end_pos_y - start_pos_y; i++)
 	{
-		it--;
-		if (it < 0) {
-			it += delta;
-			y_text++;
+		if(total_pixel_to_draw >= 64) {
+			it--;
+			if (it < 0) {
+				it += delta;
+				y_text++;
+			}
+		}
+		else {
+			//printf("in here\n");
+			negit += negdelta;
+			y_text = (int)negit;
+			//printf("ytext = [%d]\n",y_text);
 		}
 		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)]* color_lut[(int)ray->len]) << 3 * 8
 			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)]* color_lut[(int)ray->len]) << 2 * 8
@@ -191,7 +216,7 @@ void draw_scene(void *param)
 		//printf("Before first drawline\n");
 		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
 		//printf("After first drawline\n");
-		printf("len = %f\n",rayc->rays[i].len);
+		//printf("len = %f\n",rayc->rays[i].len);
 		if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_WALL)
 			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_north, wall_upper, wall_height,meta->shading_lut);
 		else if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_DOOR) //
