@@ -1,7 +1,7 @@
 NO ./resources/textures/bricks.png
+EA ./resources/textures/bricks.png
 SO ./resources/textures/bricks.png
 WE ./resources/textures/bricks.png
-EA ./resources/textures/bricks.png
 DO ./resources/textures/door.png
 
 F 2,48,32

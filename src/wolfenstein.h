@@ -41,6 +41,14 @@
 #define DBG_GRID_DOOR 0x393939FF
 #define DBG_GRID_BORDER 0x303030FF
 
+enum texture_type{
+	TXT_NORTH = 0,
+	TXT_EAST = 1,
+	TXT_SOUTH = 2,
+	TXT_WEST = 3,
+	TXT_DOOR = 4,
+};
+
 enum map_type_id{
     MP_ERR = 0,
     MP_TEXT,
@@ -105,17 +113,9 @@ typedef struct player
 
 typedef struct map_s
 {
-    char *text_north;
-    char *text_south;
-    char *text_west;
-    char *text_east;
-	char *text_door;
-
-	mlx_texture_t* texture_north;
-	mlx_texture_t* texture_south;
-	mlx_texture_t* texture_east;
-	mlx_texture_t* texture_west;
-	mlx_texture_t* texture_door;
+	int total_textures;
+	char ** file_data;
+	mlx_texture_t** texture_data;
 
     uint32_t col_floor;
     uint32_t col_ceil;
@@ -124,7 +124,6 @@ typedef struct map_s
     int map_x;
     int map_y;
     int map_dim;
-
 
     int p_pos_x;
     int p_pos_y;
@@ -204,6 +203,7 @@ void store_map_array(map_t* map,char *line,int fd);
 void store_map_color(map_t* map,char *line);
 void store_map_texture(map_t* map,char *line);
 enum map_type_id identify_line(char *line);
+int find_texture_id(char *line);
 
 //map debugging
 void display_map_data(map_t *map);

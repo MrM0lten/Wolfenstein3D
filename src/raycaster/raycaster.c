@@ -83,6 +83,7 @@ ray raycast(double radian, meta_t* meta)
 	double len_vert = vector2d_len(vray.x - meta->player.pos.x,vray.y - meta->player.pos.y);
 	ray ray;
 
+	ray.dir = radian;
 	if (len_hor == 0 || len_hor > len_vert) {
 		ray.hit = vray;
 		ray.len = len_vert;
@@ -99,7 +100,6 @@ ray raycast(double radian, meta_t* meta)
 		else
 			ray.hit_dir = DIR_SOUTH;
 	}
-	ray.dir = radian;
 	ray.hit_id = is_wall(ray.hit.x, ray.hit.y, meta);
 	return ray;
 }

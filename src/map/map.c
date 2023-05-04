@@ -20,36 +20,11 @@ void store_map_texture(map_t* map,char *line)
     if(line[i] == '\n' ) //checking if there is no path after an identifier
         return log_string("Found Texture identifier, but line is empty",1);
 
-    if(!ft_strncmp(line,"NO",2))
-    {
-        if(map->text_north != NULL)
-            free_and_warn(&map->text_north);
-        map->text_north = ft_substr(line,i,len-i);
-    }
-    else if(!ft_strncmp(line,"SO",2))
-    {
-        if(map->text_south != NULL)
-            free_and_warn(&map->text_south);
-        map->text_south = ft_substr(line,i,len-i);
-    }
-    else if (!ft_strncmp(line,"WE",2))
-    {
-        if(map->text_west != NULL)
-            free_and_warn(&map->text_west);
-        map->text_west = ft_substr(line,i,len-i);
-    }
-    else if( !ft_strncmp(line,"EA",2))
-    {
-        if(map->text_east != NULL)
-            free_and_warn(&map->text_east);
-        map->text_east = ft_substr(line,i,len-i);
-    }
-    else if( !ft_strncmp(line,"DO",2))
-    {
-        if(map->text_door != NULL)
-            free_and_warn(&map->text_door);
-        map->text_door = ft_substr(line,i,len-i);
-    }
+    enum texture_type type = find_texture_id(line);
+
+    if(map->file_data[type] != NULL)
+            free_and_warn(&map->file_data[type]);
+        map->file_data[type] = ft_substr(line,i,len-i);
 }
 
 void store_map_color(map_t* map,char *line)
@@ -212,19 +187,22 @@ void store_map_array(map_t* map,char *line,int fd)
     display_map_data(map);
     ft_lstclear(&lst_line,free);
 }
+
 //tries finding one of several valid texture ids, 1 = found,0 = not found
+//return value corresponds to the texture in enum type "texture_type"
+//order of these strings is important!
 int find_texture_id(char *line)
 {
-    char * ids[] = {"NO","SO","WE","EA","DO",NULL};
+    char * ids[] = {"NO","EA","SO","WE","DO",NULL};
 
     int i = 0;
     while(ids[i])
     {
         if(!ft_strncmp(line,ids[i],2))
-            return 1;
+            return i;
         i++;
     }
-    return 0;
+    return -1;
 }
 
 enum map_type_id identify_line(char *line)
@@ -234,7 +212,7 @@ enum map_type_id identify_line(char *line)
     size_t len = ft_strlen((const char*)line);
     if(len < 2)
         return MP_ERR;
-    if(find_texture_id(line))
+    if(find_texture_id(line) != -1)
         return MP_TEXT;
     else if(!ft_strncmp(line,"F",1) || !ft_strncmp(line,"C",1))
         return MP_COL;
@@ -248,16 +226,6 @@ enum map_type_id identify_line(char *line)
 map_t* init_map(void)
 {
     map_t* map = malloc(sizeof(map_t));
-    map->text_north = NULL;
-    map->text_south = NULL;
-    map->text_east = NULL;
-    map->text_west = NULL;
-    map->text_door = NULL;
-	map->texture_north = NULL;
-	map->texture_south = NULL;
-	map->texture_east = NULL;
-	map->texture_west = NULL;
-    map->texture_door = NULL;
     map->col_ceil = 0; // black, but no transparency
     map->col_floor = 0; // black, but no transparency
     map->p_orient = -1;
@@ -267,6 +235,15 @@ map_t* init_map(void)
     map->map_x = 0;
     map->map_y = 0;
     map->map_dim = 0;
+
+    map->total_textures = 5;
+
+    map->file_data = malloc(sizeof(char *) *(map->total_textures + 1));
+    map->texture_data = malloc(sizeof(mlx_texture_t *) *(map->total_textures + 1));
+    for (int i = 0; i < map->total_textures + 1; i++) {
+        map->file_data[i] = NULL;
+        map->texture_data[i] = NULL;
+    }
 
     return map;
 
@@ -340,25 +317,13 @@ int is_walled(int x, int y,map_t* map)
 int validate_map(map_t* map)
 {
     int ret = 1;
-    if(map->text_north == NULL || access(map->text_north,F_OK | R_OK)){
-        log_string("No NORTH texture found",2);
-        ret = 0;
-    }
-    if(map->text_south == NULL || access(map->text_south,F_OK | R_OK)){
-        log_string("No SOUTH texture found",2);
-        ret = 0;
-    }
-    if(map->text_east == NULL || access(map->text_east,F_OK | R_OK)){
-        log_string("No EAST texture found",2);
-        ret = 0;
-    }
-    if(map->text_west == NULL || access(map->text_west,F_OK | R_OK)){
-        log_string("No WEST texture found",2);
-        ret = 0;
-    }
-    if(map->text_door == NULL || access(map->text_door,F_OK | R_OK)){
-        log_string("No Door texture found",1);
-        ret = 0;
+
+    for (int i = 0; i < map->total_textures; i++)
+    {
+        if(map->file_data[i] == NULL || access(map->file_data[i],F_OK | R_OK)) {
+            log_string("No texture found",2);
+            ret = 0;
+        }
     }
 
     if(map->col_ceil == 0){
@@ -394,11 +359,16 @@ int validate_map(map_t* map)
         }
     }
 
-    map->texture_north = mlx_load_png(map->text_north);
-	map->texture_south = mlx_load_png(map->text_south);
-	map->texture_east = mlx_load_png(map->text_east);
-	map->texture_west = mlx_load_png(map->text_west);
-    map->texture_door = mlx_load_png(map->text_door);
+    for (int i = 0; i < map->total_textures; i++)
+        map->texture_data[i] = mlx_load_png(map->file_data[i]);
+
+
+
+    // map->texture_north = mlx_load_png(map->text_north);
+	// map->texture_south = mlx_load_png(map->text_south);
+	// map->texture_east = mlx_load_png(map->text_east);
+	// map->texture_west = mlx_load_png(map->text_west);
+    // map->texture_door = mlx_load_png(map->text_door);
 
 
     return ret;
@@ -406,7 +376,7 @@ int validate_map(map_t* map)
 
 void free_map(map_t *map)
 {
-    free(map->text_north);
+/*     free(map->text_north);
     free(map->text_south);
     free(map->text_east);
     free(map->text_west);
@@ -421,7 +391,16 @@ void free_map(map_t *map)
     free(map->texture_west->pixels);
     free(map->texture_west);
     free(map->texture_door->pixels);
-    free(map->texture_door);
+    free(map->texture_door); */
+
+    for (int i = 0; i < map->total_textures; i++)
+    {
+        free(map->file_data[i]);
+        free(map->texture_data[i]->pixels);
+        free(map->texture_data[i]);
+    }
+    free(map->file_data);
+    free(map->texture_data);
 
     free(map->map);
     free(map);

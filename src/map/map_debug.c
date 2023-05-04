@@ -3,10 +3,9 @@
 void display_map_data(map_t *map)
 {
     printf("--------------MAP DATA-----------------\n");
-    printf("NORTH Texture path: [%s]\n",map->text_north);
-    printf("SOUTH Texture path: [%s]\n",map->text_south);
-    printf("EAST Texture path: [%s]\n",map->text_east);
-    printf("WEST Texture path: [%s]\n",map->text_west);
+    for (int i = 0; i < map->total_textures; i++)
+        printf("Texture [%i] path: [%s]\n",i,map->file_data[i]);
+
     printf("Ceiling Color: %u (RGBA = %i,%i,%i,%i)\n",map->col_ceil,
     (map->col_ceil>>24),
     ((map->col_ceil<<8)>>24),
