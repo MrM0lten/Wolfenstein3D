@@ -1,5 +1,31 @@
 #include "wolfenstein.h"
 
+void ft_key(mlx_key_data_t keydata, void* param)
+{
+	meta_t* meta = param;
+
+	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
+	{
+		ray ray = raycast(meta->player.a, meta);
+		if(ray.hit_id == GD_DOOR)
+		{
+			int mx = (int)ray.hit.x>>6;
+			int my = (int)ray.hit.y>>6;
+			int mp = my * meta->map->map_x + mx;
+			meta->map->map[mp] = GD_FREE;
+		}
+	}
+
+	//toggle debug view
+	if (mlx_is_key_down(meta->mlx, MLX_KEY_0))
+	{
+		if(meta->debugmap.img->instances[0].z == -1)
+			mlx_set_instance_depth(&meta->debugmap.img->instances[0],1);
+		else
+			mlx_set_instance_depth(&meta->debugmap.img->instances[0],-1);
+	}
+}
+
 void ft_hook(void* param)
 {
 	meta_t* meta = param;
@@ -57,17 +83,7 @@ void ft_hook(void* param)
 		if(meta->map->map[p_neggrid_offset_y * meta->map->map_x + p_grid_x] == GD_FREE)
 			player->pos.y -= player->dy;
 	}
-	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
-	{
-		ray ray = raycast(meta->player.a, meta);
-		if(ray.hit_id == GD_DOOR)
-		{
-			int mx = (int)ray.hit.x>>6;
-			int my = (int)ray.hit.y>>6;
-			int mp = my * meta->map->map_x + mx;
-			meta->map->map[mp] = GD_FREE;
-		}
-	}
+
 }
 
 //calculates the player rotation based on the current and previous mouse positon
@@ -114,6 +130,7 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 	debugmap->width = width;
 	debugmap->height = height;
 	debugmap->img = mlx_new_image(meta->mlx, width, height);
+
 	return 1;
 }
 
@@ -130,7 +147,7 @@ int setup_mlx(meta_t *meta)
 	mlx_loop_hook(meta->mlx, count_frames, meta);
 	mlx_loop_hook(meta->mlx, ft_hook, meta);
 	mlx_cursor_hook(meta->mlx,mouse_rot,meta);
-
+	mlx_key_hook(meta->mlx,ft_key,meta);
 	return 1;
 }
 
@@ -160,7 +177,7 @@ meta_t *setup()
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
 
-	meta->map = read_map("./resources/maps/test_dir.cub");
+	meta->map = read_map("./resources/maps/show_off.cub");
 	if (meta->map == NULL) {}
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
@@ -216,6 +233,7 @@ int main()
 	if (meta == NULL) {}
 	mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
 	mlx_image_to_window(meta->mlx, meta->debugmap.img, 512, 0);
+	mlx_set_instance_depth(&meta->debugmap.img->instances[0],-1);
 	mlx_loop(meta->mlx);
 	cleanup(meta);
 	return (0);

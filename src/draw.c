@@ -37,7 +37,7 @@ void drawline(mlx_image_t* image, point_t start, point_t end, int color)
 //a simple function that simply returns its color without changing the pixel itself
 uint8_t col_lut_mult(uint8_t col, void* effect)
 {
-	(void)effect;
+	//(void)effect;
 	return (col * *(float*)effect);
 }
 
@@ -104,11 +104,11 @@ void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t scre
 	{
 		it += delta;
 		y_text = (int)it;
-		if(y_text >= 64) //setting to max value of text array
+		if(y_text >= 63) //setting to max value of text array
 			y_text = 63;
 
 		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
-		get_color_from_text(texture,x_text,y_text,col_default,&effect[(int)ray->len]));
+		get_color_from_text(texture, x_text, y_text, col_lut_mult, effect));
 	}
 
 }
@@ -209,8 +209,7 @@ void draw_debugplayer(mlx_image_t *img, player_t *player,int ratio)
 {
 	int p_size = 6;
 	point_t p_gridpos ={(player->pos.x/ratio),(player->pos.y/ratio)};
-	for (int i = 0; i < p_size; i++)
-	{
+	for (int i = 0; i < p_size; i++) {
 		for (int j = 0; j < p_size; j++)
 			my_mlx_put_pixel(img,(point_t){p_gridpos.x+j-p_size/2,p_gridpos.y+i-p_size/2},0xFF0000FF);
 	}
@@ -289,20 +288,24 @@ void draw_scene(void *param)
 	point_t wall_upper;
 	point_t wall_lower;
 	float wall_height;
+	float delta = IMG_WIDTH/meta->raycaster.num_rays;
+	//printf("delta = [%f]\n",delta);
+	float pos = 0;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-		wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
-		wall_upper.x = i;
-		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
-		wall_lower.x = i;
-		wall_lower.y = (int)(meta->win_height + wall_height) / 2;
+		for (int j = 0; j < delta; j++)
+		{
+			pos = i * delta + j;
 
-		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
-
-		//trial
-		draw_wall_on_steroids(meta->main_scene,meta->map,&rayc->rays[i],wall_upper,wall_height,meta->shading_lut);
-
-		drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
+			wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
+			wall_upper.x = pos;
+			wall_upper.y = (int)(meta->win_height - wall_height) / 2;
+			wall_lower.x = pos;
+			wall_lower.y = (int)(meta->win_height + wall_height) / 2;
+			drawline(meta->main_scene, (point_t){pos, 0}, wall_upper, meta->map->col_ceil);
+			draw_wall_on_steroids(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, &meta->shading_lut[(int)rayc->rays[i].len]);
+			drawline(meta->main_scene, wall_lower, (point_t){pos, meta->win_height}, meta->map->col_floor);
+		}
 	}
 }
 

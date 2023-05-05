@@ -18,10 +18,6 @@
 #define WIN_HEIGHT 512
 #define DEBUGMAP_HEIGHT 512
 #define DEBUGMAP_WIDTH 512
-#define MAP_HEIGHT 8
-#define MAP_WIDTH 8
-#define MAP_DIM MAP_HEIGHT * MAP_WIDTH
-#define SQ_DIM MAP_DIM
 
 #define CUBE_DIM 64
 #define PLAYER_HEIGHT 32
