@@ -7,7 +7,7 @@ void ft_key(mlx_key_data_t keydata, void* param)
 	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
 	{
 		ray ray = raycast(meta->player.a, meta);
-		if(ray.hit_id == GD_DOOR)
+		if(ray.hit_id == GD_DOOR && ray.len <= 100.f)
 		{
 			int mx = (int)ray.hit.x>>6;
 			int my = (int)ray.hit.y>>6;

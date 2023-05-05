@@ -51,9 +51,9 @@ inline uint8_t col_default(uint8_t col, void* effect)
 uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(uint8_t, void*), void* transform)
 {
 		return( (uint32_t)f(texture->pixels[y * texture->width * 4 + 0 + (x * 4)],transform)  << 3 * 8
-			| (uint32_t)f(texture->pixels[y * texture->width * 4 + 1 + (x * 4)],transform)  << 2 * 8
-			| (uint32_t)f(texture->pixels[y * texture->width * 4 + 2 + (x * 4)],transform) << 1 * 8
-			| (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
+			  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 1 + (x * 4)],transform)  << 2 * 8
+			  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 2 + (x * 4)],transform) << 1 * 8
+			  | (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
 }
 
 //returns a texture within the map texture_data structure based on a given ray, will take direction into account
@@ -64,7 +64,7 @@ mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
 	//debug_point(&ray_grid_pos);
 	if(map->map[(int)ray_grid_pos.y * map->map_x + (int)ray_grid_pos.x] == GD_DOOR)
 		return map->texture_data[TXT_DOOR];
-	printf("hit dir = %d\n",ray->hit_dir);
+	//printf("hit dir = %d\n",ray->hit_dir);
 
 	//note this works because the hit_dir enum corresponds to the right array elements
 	return map->texture_data[ray->hit_dir];
@@ -108,7 +108,7 @@ void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t scre
 			y_text = 63;
 
 		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
-		get_color_from_text(texture, x_text, y_text, col_lut_mult, effect));
+		get_color_from_text(texture, x_text, y_text, col_default, effect));
 	}
 
 }

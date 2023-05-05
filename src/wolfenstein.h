@@ -12,7 +12,7 @@
 #include "MLX42.h"
 #include "libft.h"
 
-#define IMG_WIDTH 512
+#define IMG_WIDTH 1024
 #define IMG_HEIGHT 512
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 512
@@ -107,6 +107,20 @@ typedef struct player
 	float speed;
 }player_t;
 
+/// @brief a structure that holds all information about a Cub3D map
+/// @param text_north Texture path to be used for all walls facing north
+/// @param text_south Texture path to be used for all walls facing south
+/// @param text_west Texture path to be used for all walls facing west
+/// @param text_east Texture path to be used for all walls facing east
+/// @param col_floor Color to be used to texture the floor
+/// @param col_ceil Color to be used to texture the ceiling
+/// @param map The 1D array containing the actual map data
+/// @param map_x Map X dimensions
+/// @param map_y Map Y dimensions
+/// @param map_dim Calculated Map dimensions (map_x * map_y)
+/// @param p_pos_x Players start X position within the map array
+/// @param p_pos_y Players start Y position within the map array
+/// @param p_orient Player orientation on game start in Radians
 typedef struct map_s
 {
 	int total_textures;
@@ -155,21 +169,6 @@ typedef struct meta
 	float* shading_lut;
 }meta_t;
 
-/// @brief a structure that holds all information about a Cub3D map
-/// @param text_north Texture path to be used for all walls facing north
-/// @param text_south Texture path to be used for all walls facing south
-/// @param text_west Texture path to be used for all walls facing west
-/// @param text_east Texture path to be used for all walls facing east
-/// @param col_floor Color to be used to texture the floor
-/// @param col_ceil Color to be used to texture the ceiling
-/// @param map The 1D array containing the actual map data
-/// @param map_x Map X dimensions
-/// @param map_y Map Y dimensions
-/// @param map_dim Calculated Map dimensions (map_x * map_y)
-/// @param p_pos_x Players start X position within the map array
-/// @param p_pos_y Players start Y position within the map array
-/// @param p_orient Player orientation on game start in Radians
-extern map_t* map;
 
 //len needs to be renamed or additional param used for actual wall pixel height
 // Raycaster
