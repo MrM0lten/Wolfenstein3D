@@ -85,9 +85,9 @@ typedef struct ray
 	double len;
 	double dir;
 	enum directions{
-		DIR_NORTH,
-		DIR_SOUTH,
+		DIR_NORTH = 0,
 		DIR_EAST,
+		DIR_SOUTH,
 		DIR_WEST
 	} hit_dir;
 	enum map_type_id hit_id;

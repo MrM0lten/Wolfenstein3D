@@ -25,6 +25,7 @@ void store_map_texture(map_t* map,char *line)
     if(map->file_data[type] != NULL)
             free_and_warn(&map->file_data[type]);
         map->file_data[type] = ft_substr(line,i,len-i);
+
 }
 
 void store_map_color(map_t* map,char *line)

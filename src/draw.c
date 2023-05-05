@@ -56,29 +56,60 @@ uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(u
 			| (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
 }
 
-// mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
-// {
-
-// }
-
-void draw_wall_on_steroids(mlx_image_t *image,ray* ray,mlx_texture_t *texture,float wall_height, void* effect)
+//returns a texture within the map texture_data structure based on a given ray, will take direction into account
+mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
 {
-	int x_text;
-	if(ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH)
-		x_text = (int)ray->hit.x % CUBE_DIM;
-	else
-		x_text = (int)ray->hit.y % CUBE_DIM;
+	point_t ray_grid_pos = (point_t){ray->hit.x/CUBE_DIM,ray->hit.y/CUBE_DIM};
 
-	int start_pos_y = (int)((IMG_HEIGHT - wall_height)/2);
-	int end_pos_y = (int)((IMG_HEIGHT + wall_height)/2);
-	int total_pixel_to_draw = end_pos_y - start_pos_y;
+	//debug_point(&ray_grid_pos);
+	if(map->map[(int)ray_grid_pos.y * map->map_x + (int)ray_grid_pos.x] == GD_DOOR)
+		return map->texture_data[TXT_DOOR];
+	printf("hit dir = %d\n",ray->hit_dir);
 
-/* 	for (int i = 0; i < total_pixel_to_draw; i++)
+	//note this works because the hit_dir enum corresponds to the right array elements
+	return map->texture_data[ray->hit_dir];
+}
+
+//depending on the direction of the ray and its hit position calculate which x pos of a texture slice to use
+int get_texture_offset_x(ray* ray)
+{
+	//note: if texture is south or west the wall needs to be flipped
+	//hence the offset x needs to come from the other side
+
+	switch (ray->hit_dir) {
+	case DIR_NORTH:
+		return((int)ray->hit.x % CUBE_DIM);
+	case DIR_SOUTH:
+		return CUBE_DIM - ((int)ray->hit.x % CUBE_DIM) - 1;
+	case DIR_EAST:
+		return((int)ray->hit.y % CUBE_DIM);
+	case DIR_WEST:
+		return CUBE_DIM - ((int)ray->hit.y % CUBE_DIM) - 1;
+	}
+
+	return -99; //should never get here!
+}
+//note: using the wall height as iterator might have a plus minus one issue for for loop
+void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, float wall_height, void* effect)
+{
+	mlx_texture_t* texture = get_text_from_hit(map,ray);
+	int x_text = get_texture_offset_x(ray); //already knows about flipped or not
+	int y_text = 0;
+
+	//calculate what direction to read from
+	float delta = CUBE_DIM / wall_height;
+	float it = 0;
+
+	for (int i = 0; i < (int)wall_height; i++)
 	{
+		it += delta;
+		y_text = (int)it;
+		if(y_text >= 64) //setting to max value of text array
+			y_text = 63;
 
-		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y},
-		 get_color_from_text(texture,x_text,y_text,col_lut_mult,&color_lut[(int)ray->len]));
-	} */
+		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
+		get_color_from_text(texture,x_text,y_text,col_default,&effect[(int)ray->len]));
+	}
 
 }
 
@@ -103,6 +134,7 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 	float negdelta = (float)CUBE_DIM/total_pixel_to_draw;
 	float negit = negdelta;
 	//printf("\n");
+	//printf("wallheight vs total_pixel_to_draw [%f][%d]",wall_height,total_pixel_to_draw);
 	for (int i = 0; i < total_pixel_to_draw; i++)
 	{
 		if(total_pixel_to_draw >= 64) {
@@ -124,7 +156,8 @@ void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t scre
 			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] * color_lut[(int)ray->len]) << 2 * 8
 			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)] * color_lut[(int)ray->len]) << 1 * 8
 			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)]) << 0 * 8  ;
-		//printf("pixel pos [%d][%d]\n", screen_pos.x, i + start_pos_y);
+		//printf("RAY [%f][%f]\n", ray->hit.x, ray->hit.y);
+
 		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y}, col);
 	}
 }
@@ -257,36 +290,19 @@ void draw_scene(void *param)
 	point_t wall_lower;
 	float wall_height;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
-	//debug_raycaster(rayc);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
 		wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
-		//printf("wallheight = %f\n", wall_height);
 		wall_upper.x = i;
 		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
 		wall_lower.x = i;
 		wall_lower.y = (int)(meta->win_height + wall_height) / 2;
 
-		//printf("Before first drawline\n");
 		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
-		//printf("After first drawline\n");
-		//printf("len = %f\n",rayc->rays[i].len);
-		if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_data[TXT_NORTH], wall_upper, wall_height,meta->shading_lut);
-		else if (rayc->rays[i].hit_dir == DIR_NORTH && rayc->rays[i].hit_id == GD_DOOR) //
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_data[TXT_DOOR], wall_upper, wall_height,meta->shading_lut);
-		else if(rayc->rays[i].hit_dir == DIR_SOUTH && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_data[TXT_SOUTH], wall_upper, wall_height,meta->shading_lut);
-		else if(rayc->rays[i].hit_dir == DIR_WEST && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall_flip(meta->main_scene, &rayc->rays[i], meta->map->texture_data[TXT_WEST], wall_upper, wall_height,meta->shading_lut);
-		else if(rayc->rays[i].hit_dir == DIR_EAST && rayc->rays[i].hit_id == GD_WALL)
-			draw_wall(meta->main_scene, &rayc->rays[i], meta->map->texture_data[TXT_EAST], wall_upper, wall_height,meta->shading_lut);
-		else
-			drawline(meta->main_scene, wall_upper, wall_lower, meta->map->col_ceil);
-		//printf("Before second drawline\n");
+
+		//trial
+		draw_wall_on_steroids(meta->main_scene,meta->map,&rayc->rays[i],wall_upper,wall_height,meta->shading_lut);
+
 		drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
-		//printf("After second drawline\n");
 	}
-	//printf("exiting\n");
 }
 
-//drawline(meta->image_window,(point_t){(int)(i+HALF_SCREEN),0},(int)(i+HALF_SCREEN),(int)((IMG_HEIGHT- ray_data[i].len)/2),map->col_ceil);
