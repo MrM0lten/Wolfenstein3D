@@ -52,9 +52,15 @@ void store_map_color(map_t* map,char *line)
     uint32_t col = 0;
     int lshift = 24;
     int curr = 0;
+    int col_val;
     while(col_data[curr])
     {
-        col |= (uint32_t)ft_atoi(col_data[curr]) << lshift;
+        col_val = ft_atoi(col_data[curr]);
+        if(col_val > 255)
+            log_string("Color value was too high, overflow detected",1);
+        if(col_val < 0)
+            log_string("Color value was too low, underflow detected",1);
+        col |= (uint32_t)((unsigned char)col_val) << lshift;
         lshift -= 8;
         curr++;
     }
@@ -185,7 +191,6 @@ void store_map_array(map_t* map,char *line,int fd)
     map->map_dim = map->map_x * map->map_y;
 
     fill_map(map,lst_line);
-    display_map_data(map);
     ft_lstclear(&lst_line,free);
 }
 
@@ -279,6 +284,7 @@ map_t* read_map(char *path)
     close(fd);
     if(!validate_map(map))
     {
+        display_map_data(map);
         free_map(map);
         return NULL;
     }
@@ -321,9 +327,19 @@ int validate_map(map_t* map)
 
     for (int i = 0; i < map->total_textures; i++)
     {
+
         if(map->file_data[i] == NULL || access(map->file_data[i],F_OK | R_OK)) {
-            log_string("No texture found",2);
-            ret = 0;
+            if(i == TXT_DOOR) {
+                log_string("No DOOR texture found, replacing doors with empty tiles",1);
+                for (int i = 0; i < map->map_dim; i++){
+                    if(map->map[i] == GD_DOOR)
+                        map->map[i] = GD_FREE;
+                }
+            }
+            else {
+                log_string("No texture found",2);
+                ret = 0;
+            }
         }
     }
 
@@ -360,8 +376,10 @@ int validate_map(map_t* map)
         }
     }
 
-    for (int i = 0; i < map->total_textures; i++)
-        map->texture_data[i] = mlx_load_png(map->file_data[i]);
+    for (int i = 0; i < map->total_textures; i++){
+        if(map->file_data[i] != NULL)
+            map->texture_data[i] = mlx_load_png(map->file_data[i]);
+    }
 
 
 
@@ -397,8 +415,11 @@ void free_map(map_t *map)
     for (int i = 0; i < map->total_textures; i++)
     {
         free(map->file_data[i]);
+        if(map->texture_data[i] != NULL){
+
         free(map->texture_data[i]->pixels);
         free(map->texture_data[i]);
+        }
     }
     free(map->file_data);
     free(map->texture_data);
