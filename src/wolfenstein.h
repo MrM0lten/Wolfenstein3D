@@ -223,5 +223,14 @@ int ft_strarr_len(char **arr);
 
 //error
 void free_and_warn(char ** str);
-void log_string(char *message, int level);
+
+/**
+ * A function to display messages of varying degrees
+ * 0 = Log
+ * 1 = Warning
+ * 2 = Error
+ * @param level The log level
+ * @param amount The amount of strings passed.
+*/
+void log_string(int level, int amount, ...);
 #endif

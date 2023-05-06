@@ -226,6 +226,8 @@ int cleanup(meta_t* meta)
 
 int main()
 {
+	log_string(1,3,"wow","this is insane ","yoooo");
+
 	meta_t *meta = setup();
 	if (meta == NULL) {}
 	mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);

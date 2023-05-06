@@ -66,9 +66,9 @@ uint32_t str_to_col(char **col_data)
     while(col_data[curr]) {
         col_val = ft_atoi(col_data[curr]);
         if(col_val > 255)
-            log_string("Color value was too high, overflow detected",1);
+            log_string(1,1,"Color value was too high, overflow detected");
         if(col_val < 0)
-            log_string("Color value was too low, underflow detected",1);
+            log_string(1,1,"Color value was too low, underflow detected");
         col |= (uint32_t)((unsigned char)col_val) << lshift;
         lshift -= 8;
         curr++;
