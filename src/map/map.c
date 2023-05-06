@@ -1,13 +1,5 @@
 #include "wolfenstein.h"
 
-//a function specifically made to free a char * and log an error
-static void free_and_warn(char ** texture)
-{
-    log_string("Texture with same Identifier detected",1);
-    free(*texture);
-    *texture = NULL;
-}
-
 void store_map_texture(map_t* map,char *line)
 {
     unsigned int i = 2;
@@ -47,33 +39,14 @@ void store_map_color(map_t* map,char *line)
     if(!col_data || ft_strarr_len(col_data) != 3)
         return log_string("Didnt find appropriate R,G,B value format ",1);
 
+    uint32_t col = str_to_col(col_data);
 
-    //extract Color information
-    uint32_t col = 0;
-    int lshift = 24;
-    int curr = 0;
-    int col_val;
-    while(col_data[curr])
-    {
-        col_val = ft_atoi(col_data[curr]);
-        if(col_val > 255)
-            log_string("Color value was too high, overflow detected",1);
-        if(col_val < 0)
-            log_string("Color value was too low, underflow detected",1);
-        col |= (uint32_t)((unsigned char)col_val) << lshift;
-        lshift -= 8;
-        curr++;
-    }
-    col |= 255; //adding alpha at the end
-
-    if(line[0] == 'F')
-    {
+    if(line[0] == 'F') {
         if(map->col_floor != 0)
             log_string("Addional Ceiling Color found!",1);
         map->col_floor = col;
     }
-    else if(line[0] == 'C')
-    {
+    else if(line[0] == 'C') {
         if(map->col_ceil != 0)
             log_string("Addional Floor Color found!",1);
         map->col_ceil = col;
@@ -87,23 +60,6 @@ void store_map_color(map_t* map,char *line)
         free(col_data[pos++]);
     free(col_data);
 }
-
-//returns the player rotation in gradiens based on an input of N,E,S,W
-//east = 0;
-//south = PI/2
-//west = PI
-//north = 1.5 * PI
-double player_rot_from_char(char c)
-{
-    char * ids = {"ESWN"};
-
-    for (int i = 0; i < 4; i++) {
-        if(ids[i] == c)
-            return (i * PI/2);
-    }
-    return -1;
-}
-
 
 //fills the maps int array with values, it will detect errors, but will parse anyways
 //actual error checking will be done later
@@ -181,23 +137,6 @@ void store_map_array(map_t* map,char *line,int fd)
     ft_lstclear(&lst_line,free);
 }
 
-//tries finding one of several valid texture ids, 1 = found,0 = not found
-//return value corresponds to the texture in enum type "texture_type"
-//order of these strings is important!
-int find_texture_id(char *line)
-{
-    char * ids[] = {"NO","EA","SO","WE","DO",NULL};
-
-    int i = 0;
-    while(ids[i])
-    {
-        if(!ft_strncmp(line,ids[i],2))
-            return i;
-        i++;
-    }
-    return -1;
-}
-
 enum map_type_id identify_line(char *line)
 {
     if(line == NULL)
@@ -244,6 +183,10 @@ map_t* init_map(void)
 
 map_t* read_map(char *path)
 {
+    if(!ft_strnstr(path,".cub",ft_strlen(path))) {
+        log_string("Input file does not have the required '.cub' extension",2);
+        return NULL;
+    }
     int fd = open(path,O_RDONLY);
     if(fd == -1)
         return NULL;
@@ -253,8 +196,7 @@ map_t* read_map(char *path)
     char *line;
     line = get_next_line(fd);
     enum map_type_id id;
-    while(line)
-    {
+    while(line) {
         id = identify_line(line);
         if(id == MP_TEXT)
             store_map_texture(map,line);
@@ -269,38 +211,13 @@ map_t* read_map(char *path)
         line = get_next_line(fd);
     }
     close(fd);
-    if(!validate_map(map))
-    {
+    if(!validate_map(map)) {
         free_map(map);
         return NULL;
     }
-    display_map_data(map);
+    debug_map(map);
     return map;
 }
-
-//retrieves the direct value of a maps->map given the xy coordinates
-int get_grid_val(int x,int y, map_t* map)
-{
-    return map->map[y * map->map_x+ x];
-}
-
-//based on a grid checks if a given point(x,y) is adjacent to a wall in each cardial direction
-int is_walled(int x, int y,map_t* map)
-{
-    int val = map->map[y * map->map_x + x];
-    if(val == 1)
-        return 1;
-    //initially checking for borders
-    if(x == 0 || x + 1 == map->map_x || y == 0 || y + 1 == map->map_y)
-        return 0;
-
-    //need to check every element as map could have 'holes'
-    if(get_grid_val(x+1,y,map) == GD_VOID || get_grid_val(x-1,y,map) == GD_VOID
-    || get_grid_val(x,y+1,map) == GD_VOID || get_grid_val(x,y-1,map) == GD_VOID)
-        return 0;
-    return 1;
-}
-
 
 //returns 1 on success
 // 0 on failure
@@ -362,37 +279,11 @@ int validate_map(map_t* map)
             map->texture_data[i] = mlx_load_png(map->file_data[i]);
     }
 
-
-
-    // map->texture_north = mlx_load_png(map->text_north);
-	// map->texture_south = mlx_load_png(map->text_south);
-	// map->texture_east = mlx_load_png(map->text_east);
-	// map->texture_west = mlx_load_png(map->text_west);
-    // map->texture_door = mlx_load_png(map->text_door);
-
-
     return ret;
 }
 
 void free_map(map_t *map)
 {
-/*     free(map->text_north);
-    free(map->text_south);
-    free(map->text_east);
-    free(map->text_west);
-    free(map->text_door);
-
-    free(map->texture_north->pixels);
-    free(map->texture_north);
-    free(map->texture_east->pixels);
-    free(map->texture_east);
-    free(map->texture_south->pixels);
-    free(map->texture_south);
-    free(map->texture_west->pixels);
-    free(map->texture_west);
-    free(map->texture_door->pixels);
-    free(map->texture_door); */
-
     for (int i = 0; i < map->total_textures; i++)
     {
         free(map->file_data[i]);

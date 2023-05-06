@@ -201,10 +201,8 @@ enum map_type_id identify_line(char *line);
 int find_texture_id(char *line);
 
 //map debugging
-void display_map_data(map_t *map);
+void debug_map(map_t *map);
 void print_map(map_t *map);
-void log_string(char *message, int level);
-int ft_strarr_len(char **arr);
 
 void debug_meta(meta_t *meta);
 void debug_raycaster(raycaster_t* raycaster);
@@ -214,7 +212,16 @@ void debug_point(point_t* point);
 
 
 //utilities
-//returns the next bigger power of 2 value given a value e.g 5 -> 8
 int find_next_pow(int val);
+int get_grid_val(int x,int y, map_t* map);
+uint32_t str_to_col(char **col_data);
+double player_rot_from_char(char c);
+int find_texture_id(char *line);
+int is_walled(int x, int y, map_t* map);
+int ft_strarr_len(char **arr);
 
+
+//error
+void free_and_warn(char ** str);
+void log_string(char *message, int level);
 #endif
