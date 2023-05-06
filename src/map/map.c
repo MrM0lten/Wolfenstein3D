@@ -88,6 +88,23 @@ void store_map_color(map_t* map,char *line)
     free(col_data);
 }
 
+//returns the player rotation in gradiens based on an input of N,E,S,W
+//east = 0;
+//south = PI/2
+//west = PI
+//north = 1.5 * PI
+double player_rot_from_char(char c)
+{
+    char * ids = {"ESWN"};
+
+    for (int i = 0; i < 4; i++) {
+        if(ids[i] == c)
+            return (i * PI/2);
+    }
+    return -1;
+}
+
+
 //fills the maps int array with values, it will detect errors, but will parse anyways
 //actual error checking will be done later
 //fill actual map array by looping through the list
@@ -105,10 +122,8 @@ static void fill_map(map_t* map,t_list* lst_line)
     while(lst_line)
     {
         content = (char *)lst_line->content;
-        //printf("{%s}\n",content);
         i = 0;
-        while(content[i] && content[i] != '\n')
-        {
+        while(content[i] && content[i] != '\n') {
             if(content[i] == '0')
                 map->map[pos] = GD_FREE;
             else if(content[i] == '1')
@@ -117,43 +132,15 @@ static void fill_map(map_t* map,t_list* lst_line)
                 map->map[pos] = GD_DOOR;
             else if(content[i] == ' ')
                 map->map[pos] = GD_VOID;
-            else if(content[i] == 'N')
-            {
+            else if(ft_strchr("NSEW",content[i])) {
                 if(map->p_pos_x != -1)
                     log_string("Addional Player location found, prev Value overriden!",1);
-                map->map[pos] = 0;
-                map->p_orient = 1.5* PI;
+                map->map[pos] = GD_FREE;
+                map->p_orient = player_rot_from_char(content[i]);
                 map->p_pos_x = i;
-                map->p_pos_y = (pos+1)/map->map_x;
+                map->p_pos_y = (pos + 1) / map->map_x;
             }
-            else if(content[i] == 'S')
-            {
-                if(map->p_pos_x != -1)
-                    log_string("Addional Player location found, prev Value overriden!",1);
-                map->map[pos] = 0;
-                map->p_orient = PI/2;
-                map->p_pos_x = i;
-                map->p_pos_y = (pos+1)/map->map_x;
-            }
-            else if(content[i] == 'E')
-            {
-                if(map->p_pos_x != -1)
-                    log_string("Addional Player location found, prev Value overriden!",1);
-                map->map[pos] = 0;
-                map->p_orient = 0;
-                map->p_pos_x = i;
-                map->p_pos_y = (pos+1)/map->map_x;
-            }
-            else if(content[i] == 'W')
-            {
-                if(map->p_pos_x != -1)
-                    log_string("Addional Player location found, prev Value overriden!",1);
-                map->map[pos] = 0;
-                map->p_orient = PI;
-                map->p_pos_x = i;
-                map->p_pos_y = (pos+1)/map->map_x;
-            }
-            else{
+            else {
                 map->map[pos] = -1;
             }
             i++;
@@ -284,10 +271,10 @@ map_t* read_map(char *path)
     close(fd);
     if(!validate_map(map))
     {
-        display_map_data(map);
         free_map(map);
         return NULL;
     }
+    display_map_data(map);
     return map;
 }
 
@@ -301,14 +288,10 @@ int get_grid_val(int x,int y, map_t* map)
 int is_walled(int x, int y,map_t* map)
 {
     int val = map->map[y * map->map_x + x];
-    //printf("val = %d\n",val);
     if(val == 1)
-    {
-        //printf("IS WALL\n");
         return 1;
-    }
     //initially checking for borders
-    if(x == 0 || x+1 == map->map_x || y == 0 || y+1 == map->map_y)
+    if(x == 0 || x + 1 == map->map_x || y == 0 || y + 1 == map->map_y)
         return 0;
 
     //need to check every element as map could have 'holes'
@@ -366,10 +349,8 @@ int validate_map(map_t* map)
             val = map->map[y * map->map_x + x];
             if(val == GD_VOID)
                 continue;
-            //printf("val in loop= %d\n",val);
             if(val == -1 || !is_walled(x,y,map))
             {
-                //printf("x,y = [%d][%d]\n",x,y);
                 log_string("Map is impossible.",2);
                 return 0;
             }
@@ -416,9 +397,8 @@ void free_map(map_t *map)
     {
         free(map->file_data[i]);
         if(map->texture_data[i] != NULL){
-
-        free(map->texture_data[i]->pixels);
-        free(map->texture_data[i]);
+            free(map->texture_data[i]->pixels);
+            free(map->texture_data[i]);
         }
     }
     free(map->file_data);

@@ -176,7 +176,7 @@ meta_t *setup()
 
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
-	meta->map = read_map("./resources/maps/test_dir.cub");
+	meta->map = read_map("./resources/maps/show_off.cub");
 	if (meta->map == NULL) {}
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
@@ -200,12 +200,10 @@ meta_t *setup()
 	for (int i = 0; i < MAX_DRAW_DIST; i++)
 	{
 		meta->shading_lut[i] = val;
-		//val = (float)(pow((double)i,2)/100000);
 		if(val > 0)
 			val -= step_val;
 		else
 			val = 0;
-		//printf("val at [%d] = %f\n",i,meta->shading_lut[i]);
 	}
 
 	return meta;
