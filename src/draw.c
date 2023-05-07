@@ -233,7 +233,7 @@ void draw_sprite(meta_t* meta,sprite_t* sprite)
 	int screen_x = p /(PI/2) * IMG_WIDTH;
 	//int screen_y = meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y);
 	//int screen_y = (20 *meta->dist_to_proj)/vector2d_len(sp.x,sp.y);
-	int screen_y = ((IMG_HEIGHT - 0 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
+	int screen_y = ((IMG_HEIGHT - 10 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
 	//screen_y = (screen_height - sprite_height / (distance * cos(vertical_angle - player_vertical_angle))) / 2
 	debug_point(&sp);
 	printf("sprite angle = [%f]\n",a);
@@ -242,7 +242,7 @@ void draw_sprite(meta_t* meta,sprite_t* sprite)
 	printf("Screen Pos = [%d][%d]\n",screen_x,screen_y);
 
 	//meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y)
-	draw_square(meta->main_scene,(point_t){screen_x,screen_y},32,0xFF00FFFF,0x00000000);
+	draw_square(meta->main_scene,(point_t){screen_x,screen_y},meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y),0xFF00FFFF,0x00000000);
 }
 
 void draw_scene(void *param)
