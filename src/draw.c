@@ -213,6 +213,38 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	draw_floor();
 } */
 
+
+void draw_sprite(meta_t* meta,sprite_t* sprite)
+{
+	point_t sp = (point_t){sprite->pos.x- meta->player.pos.x,sprite->pos.y- meta->player.pos.y};
+
+	double a = atan2(sp.y,sp.x);
+	if (a < 0)
+		a += 2 * PI;
+	if (a > 2*PI)
+		a -= 2*PI;
+	double p = a - (meta->player.a - (meta->player.fov/2));
+	if (p < 0)
+		p += 2 * PI;
+	if (p > 2*PI)
+		p -= 2*PI;
+	printf("relative angle %f\n", p);
+
+	int screen_x = p /(PI/2) * IMG_WIDTH;
+	//int screen_y = meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y);
+	//int screen_y = (20 *meta->dist_to_proj)/vector2d_len(sp.x,sp.y);
+	int screen_y = ((IMG_HEIGHT - 0 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
+	//screen_y = (screen_height - sprite_height / (distance * cos(vertical_angle - player_vertical_angle))) / 2
+	debug_point(&sp);
+	printf("sprite angle = [%f]\n",a);
+	printf("ratio = [%f]\n",p /(PI/2));
+	printf("player angle = [%f]\n",meta->player.a);
+	printf("Screen Pos = [%d][%d]\n",screen_x,screen_y);
+
+	//meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y)
+	draw_square(meta->main_scene,(point_t){screen_x,screen_y},32,0xFF00FFFF,0x00000000);
+}
+
 void draw_scene(void *param)
 {
 	meta_t* meta = param;
@@ -240,5 +272,6 @@ void draw_scene(void *param)
 			drawline(meta->main_scene, wall_lower, (point_t){pos, meta->win_height}, meta->map->col_floor);
 		}
 	}
+	draw_sprite(meta,&meta->sprite_data[0]);
 }
 

@@ -188,6 +188,7 @@ typedef struct meta
 void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta);
 void print_raydata();
 ray raycast(double radian, meta_t* meta);
+double	vector2d_len(double x, double y);
 
 // Drawing
 void drawline(mlx_image_t* image, point_t start, point_t end, int color);
