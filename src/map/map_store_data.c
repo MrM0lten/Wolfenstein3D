@@ -103,7 +103,7 @@ static void fill_map(map_t* map,t_list* lst_line)
             pos++;
         }
         while(i++ < map->map_x) //emulate spaces for rectangle shape
-            map->map[pos++] = 2;
+            map->map[pos++] = GD_VOID;
         lst_line = lst_line->next;
     }
 }
