@@ -16,14 +16,7 @@ void ft_key(mlx_key_data_t keydata, void* param)
 		}
 	}
 
-	//toggle debug view
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_0))
-	{
-		if(meta->debugmap.img->instances[0].z == -1)
-			mlx_set_instance_depth(&meta->debugmap.img->instances[0],1);
-		else
-			mlx_set_instance_depth(&meta->debugmap.img->instances[0],-1);
-	}
+	debug_toggles(meta);
 }
 
 void ft_hook(void* param)
@@ -131,6 +124,9 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 	debugmap->height = height;
 	debugmap->img = mlx_new_image(meta->mlx, width, height);
 
+	debugmap->db_rays = 0; //setting to 0 by default because the rays are annoying
+	debugmap->db_show_sprites = 1;
+	debugmap->db_show_sprite_dist = 1;
 	return 1;
 }
 
@@ -205,7 +201,10 @@ meta_t *setup()
 		else
 			val = 0;
 	}
-
+	meta->tot_sprites = 2;
+	meta->sprite_data = malloc(sizeof(sprite_t) * meta->tot_sprites);
+	meta->sprite_data[0] = (sprite_t){(point_t){288.f,288.f}};
+	meta->sprite_data[1] = (sprite_t){(point_t){400.f,100.f}};
 	return meta;
 }
 

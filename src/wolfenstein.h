@@ -67,6 +67,10 @@ typedef struct debug_s
 	int height;
 	int grid_size;
 	int ratio;
+
+	int db_rays;
+	int db_show_sprites;
+	int db_show_sprite_dist;
 } debug_t;
 
 typedef struct point_s
@@ -74,6 +78,11 @@ typedef struct point_s
 	float x;
 	float y;
 }point_t;
+
+typedef struct sprite_s
+{
+	point_t pos;
+} sprite_t;
 
 typedef struct ray
 {
@@ -158,6 +167,10 @@ typedef struct meta
 	mlx_image_t *main_scene;
 	mlx_t* mlx;
 	map_t *map;
+
+	sprite_t* sprite_data;
+	int tot_sprites;
+
 	debug_t debugmap;
 	raycaster_t raycaster;
 
@@ -209,7 +222,7 @@ void debug_raycaster(raycaster_t* raycaster);
 void debug_player(player_t* player);
 void debug_ray(ray *ray);
 void debug_point(point_t* point);
-
+void debug_toggles(meta_t* meta);
 
 //utilities
 int find_next_pow(int val);
