@@ -20,7 +20,7 @@
 #define DEBUGMAP_WIDTH 512
 
 #define CUBE_DIM 64
-#define PLAYER_HEIGHT 32
+#define PLAYER_HEIGHT 0
 #define PLAYER_COL_DIST 10
 #define MAX_RAY_ITER 32
 

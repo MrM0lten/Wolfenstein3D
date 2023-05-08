@@ -212,7 +212,10 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	draw_wall();
 	draw_floor();
 } */
-
+double dotProd(point_t a,point_t b)
+{
+	return a.x * b.x + a.y * b.y;
+}
 
 void draw_sprite(meta_t* meta,sprite_t* sprite)
 {
@@ -233,16 +236,40 @@ void draw_sprite(meta_t* meta,sprite_t* sprite)
 	int screen_x = p /(PI/2) * IMG_WIDTH;
 	//int screen_y = meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y);
 	//int screen_y = (20 *meta->dist_to_proj)/vector2d_len(sp.x,sp.y);
-	int screen_y = ((IMG_HEIGHT - 10 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
+	//int screen_y = ((IMG_HEIGHT - 10 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
 	//screen_y = (screen_height - sprite_height / (distance * cos(vertical_angle - player_vertical_angle))) / 2
-	debug_point(&sp);
+/* 	debug_point(&sp);
 	printf("sprite angle = [%f]\n",a);
 	printf("ratio = [%f]\n",p /(PI/2));
 	printf("player angle = [%f]\n",meta->player.a);
 	printf("Screen Pos = [%d][%d]\n",screen_x,screen_y);
-
+ */
 	//meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y)
-	draw_square(meta->main_scene,(point_t){screen_x,screen_y},meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y),0xFF00FFFF,0x00000000);
+
+
+	point_t lookdir = (point_t) {cos(meta->player.a),sin(meta->player.a)};
+
+	double dist_to_obj_fwd = dotProd(sp,lookdir);
+	double yFOV = 2 * atan(tan(meta->player.fov/2)* (IMG_WIDTH/IMG_HEIGHT));
+	double dist_to_obj_vert = dist_to_obj_fwd * tan(yFOV);
+	double zOffset_to_cam = -86;
+	double halfheight = IMG_HEIGHT/2 ;
+	int screen_y = halfheight + halfheight * zOffset_to_cam/dist_to_obj_vert;
+
+	debug_point(&lookdir);
+	printf("A =[%f]\n",dist_to_obj_fwd);
+	printf("yFOV =[%f]\n",yFOV);
+	printf("B =[%f]\n",dist_to_obj_vert);
+	printf("D =[%f]\n",halfheight);
+	printf("Screen y =[%d]\n",screen_y);
+
+	int  projected_height = meta->dist_to_proj * (CUBE_DIM/2) / vector2d_len(sp.x,sp.y);
+	//	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
+	printf("meta->dist_to_proj =[%f]\n",meta->dist_to_proj);
+
+	printf("proportion =[%d]\n",projected_height);
+
+	draw_square(meta->main_scene,(point_t){screen_x-projected_height/2,screen_y -projected_height},projected_height,0xFF00FFFF,0x00000000);
 }
 
 void draw_scene(void *param)

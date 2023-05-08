@@ -3,7 +3,7 @@ MAKEFLAGS = --no-print-directory
 
 # Compiler
 CC		:=	cc
-CFLAGS	:=	-g -O3 -lm#note causes warnings when compiling unused lib
+CFLAGS	:=	-g -O3 #note causes warnings when compiling unused lib
 
 # Targets
 TARGET	:= wolfenstein
@@ -40,7 +40,7 @@ compile: $(TARGET)
 $(TARGET): $(OBJ)
 	$(MAKE) -C ./libft
 	@printf "Creating libft: $(GREEN)OK!\n$(DEF_COLOR)"
-	@$(CC) $(CFLAGS) $^ $(E_LIB_DIRS) $(E_LIB_DEPS) -o $@
+	@$(CC) $(CFLAGS) $^ $(E_LIB_DIRS) $(E_LIB_DEPS) -o $@ -lm
 	@printf "Linking: $(GREEN)OK!\n$(DEF_COLOR)"
 
 # Compiler

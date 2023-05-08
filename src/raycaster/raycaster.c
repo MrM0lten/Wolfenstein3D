@@ -6,7 +6,7 @@ inline void draw_ray(point_t ray, meta_t *meta) {
 
 double	vector2d_len(double x, double y)
 {
-	return (sqrt(pow(x, 2) + pow(y, 2)));
+	return (sqrt(x * x + y * y ));
 }
 
 void print_raydata()
