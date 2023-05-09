@@ -204,7 +204,9 @@ meta_t *setup()
 	meta->tot_sprites = 2;
 	meta->sprite_data = malloc(sizeof(sprite_t) * meta->tot_sprites);
 	meta->sprite_data[0] = (sprite_t){(point_t){288.f,288.f}}; // +192-32
+	meta->sprite_data[0].texture = mlx_load_png("./resources/textures/girl.png");
 	meta->sprite_data[1] = (sprite_t){(point_t){400.f,100.f}};
+	meta->sprite_data[1].texture = mlx_load_png("./resources/textures/boy.png");
 	return meta;
 }
 

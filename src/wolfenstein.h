@@ -82,6 +82,8 @@ typedef struct point_s
 typedef struct sprite_s
 {
 	point_t pos;
+	mlx_texture_t *texture;
+	double len;
 } sprite_t;
 
 typedef struct ray

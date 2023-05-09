@@ -217,7 +217,9 @@ double dotProd(point_t a,point_t b)
 	return a.x * b.x + a.y * b.y;
 }
 
-void draw_sprite(meta_t* meta,sprite_t* sprite)
+
+
+void draw_sprite(meta_t* meta, sprite_t* sprite)
 {
 	point_t sp = (point_t){sprite->pos.x- meta->player.pos.x,sprite->pos.y- meta->player.pos.y};
 
@@ -263,14 +265,97 @@ void draw_sprite(meta_t* meta,sprite_t* sprite)
 	printf("D =[%f]\n",halfheight);
 	printf("Screen y =[%d]\n",screen_y);
 
-	int  projected_height = meta->dist_to_proj * (CUBE_DIM/2) / vector2d_len(sp.x,sp.y);
+
+	// mlx_texture_t* texture = get_text_from_hit(map,ray);
+	// int x_text = get_texture_offset_x(ray); //already knows about flipped or not
+	// int y_text = 0;
+
+	// //calculate what direction to read from
+	// float delta = CUBE_DIM / wall_height;
+	// float it = 0;
+
+	// for (int i = 0; i < (int)wall_height; i++)
+	// {
+	// 	it += delta;
+	// 	y_text = (int)it;
+	// 	if(y_text >= 63) //setting to max value of text array
+	// 		y_text = 63;
+
+	// 	my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
+	// 	get_color_from_text(texture, x_text, y_text, col_default, effect));
+
+	int projected_height = meta->dist_to_proj * (64) / vector2d_len(sp.x,sp.y);
+//	int	projected_width = (projected_height / sprite->texture->height) * sprite->texture->width;
+	int	projected_width = (projected_height * sprite->texture->width) / sprite->texture->height;
+
+	printf("Projected_height = %d\n", projected_height);
+	printf("Projected_width = %d\n", projected_width);
+	printf("texture_height = %d\n", sprite->texture->height);
+	printf("texture_width = %d\n", sprite->texture->width);
 	//	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
-	printf("meta->dist_to_proj =[%f]\n",meta->dist_to_proj);
 
-	printf("proportion =[%d]\n",projected_height);
+	float dx = (float)sprite->texture->width / projected_width;
+	float dy = (float)sprite->texture->height / projected_height;
 
-	draw_square(meta->main_scene,(point_t){screen_x-projected_height/2,screen_y -projected_height},projected_height,0xFF00FFFF,0x00000000);
+	float itx = 0, ity = 0;
+	int x_text = 0, y_text = 0;
+
+	for (int x = 0; x < projected_width; x++) {
+		itx += dx;
+		x_text = (int)itx;
+		ity = 0;
+		y_text = 0;
+		//printf("x_text = %d\n", x_text);
+		for (int y = 0; y < projected_height; y++) {
+			ity += dy;
+			y_text = (int)ity;
+			//printf("dy = %f\n", dy);
+			//printf("y_text = %d\n", y_text);
+			unsigned int col = get_color_from_text(sprite->texture, x_text, y_text, col_default,NULL);
+			if (col != 0x00000000)
+				my_mlx_put_pixel(meta->main_scene, (point_t){screen_x - (projected_width/2) + x, screen_y - projected_height + y}, col);
+		}
+	}
+
+	// printf("meta->dist_to_proj =[%f]\n",meta->dist_to_proj);
+	// printf("proportion =[%d]\n",projected_height);
+	// draw_square(meta->main_scene,(point_t){screen_x-projected_height/2,screen_y -projected_height},projected_height,0xFF00FFFF,0x00000000);
 }
+
+int compare( const void* a, const void* b)
+{
+	sprite_t *a1 = a1;
+	sprite_t *b1 = b1;
+     double int_a = a1->len;
+     double int_b = b1->len;
+
+     if ( int_a == int_b ) return 0;
+     else if ( int_a < int_b ) return -1;
+     else return 1;
+}
+
+void draw_sprites(meta_t *meta, player_t *player, sprite_t *sprite_arr, int size)
+{
+	double len1 = vector2d_len(sprite_arr[0].pos.x- player->pos.x, sprite_arr[0].pos.y - player->pos.y);
+	double len2 = vector2d_len(sprite_arr[1].pos.x- player->pos.x, sprite_arr[1].pos.y - player->pos.y);
+	// for (int i = 0; i < size; i++) {
+	// 	sprite_arr[i].len = vector2d_len(sprite_arr[i].pos.x- player->pos.x, sprite_arr[i].pos.y - player->pos.y);
+	// 	printf("calculated len of [%d]= %f\n",i, sprite_arr[i].len);
+	// }
+	//qsort(sprite_arr, size, sizeof(sprite_t), compare);
+	// for (int i = 0; i < size; i++) {
+	// 	draw_sprite(meta, &sprite_arr[i]);
+	// }
+	if (len1 < len2) {
+		draw_sprite(meta, &sprite_arr[1]);
+		draw_sprite(meta, &sprite_arr[0]);
+	}
+	else {
+		draw_sprite(meta, &sprite_arr[0]);
+		draw_sprite(meta, &sprite_arr[1]);
+	}
+}
+
 
 void draw_scene(void *param)
 {
@@ -299,6 +384,6 @@ void draw_scene(void *param)
 			drawline(meta->main_scene, wall_lower, (point_t){pos, meta->win_height}, meta->map->col_floor);
 		}
 	}
-	draw_sprite(meta,&meta->sprite_data[0]);
+	draw_sprites(meta, &meta->player, meta->sprite_data, meta->tot_sprites);
 }
 
