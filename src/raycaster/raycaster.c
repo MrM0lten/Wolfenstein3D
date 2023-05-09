@@ -6,7 +6,7 @@ inline void draw_ray(point_t ray, meta_t *meta) {
 
 double	vector2d_len(double x, double y)
 {
-	return (sqrt(x * x + y * y ));
+	return (sqrt(x * x + y * y));
 }
 
 void print_raydata()
@@ -104,28 +104,91 @@ ray raycast(double radian, meta_t* meta)
 	return ray;
 }
 
+
+double angle_fix(double angle)
+{
+	if (angle > 2*PI)
+		angle -= 2*PI;
+	else if (angle < 0)
+		angle += 2*PI;
+	return angle;
+}
 //actually refactor this properly!
 void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
 {
+	player_t *p = &meta->player;
+	for (int i = 0; i < nb_rays; i++) {
+		double ray_angle =  angle_fix(p->a - (atan2(i-256, meta->dist_to_proj)*-1));
+		arr[i] = raycast(ray_angle, meta);
+		arr[i].len = arr[i].len * cos(p->a - ray_angle);
+	}
 	//debug_meta(meta);
-	if (nb_rays == 1) {
-		arr[0] = raycast(meta->player.a, meta);
-		return;
-	}
-	double start_radian = meta->player.a-fov/2;
-	double step = fov / (nb_rays -1);
-	for (int i=0; i < nb_rays; i++) {
-		if (start_radian > 2*PI)
-			start_radian -= 2*PI;
-		else if (start_radian < 0)
-			start_radian += 2*PI;
-		arr[i] = raycast(start_radian, meta);
-		double temp = meta->player.a - start_radian;
-		if(temp > 2*PI)
-			temp -= 2*PI;
-		else if(temp < 0)
-			temp += 2*PI;
-		arr[i].len = arr[i].len * cos(temp);
-		start_radian += step;
-	}
+	// if (nb_rays == 1) {
+	// 	arr[0] = raycast(meta->player.a, meta);
+	// 	return;
+	// }
+	// double start_radian = meta->player.a-fov/2;
+	// double step = fov / (nb_rays -1);
+	// for (int i=0; i < nb_rays; i++) {
+	// 	if (start_radian > 2*PI)
+	// 		start_radian -= 2*PI;
+	// 	else if (start_radian < 0)
+	// 		start_radian += 2*PI;
+	// 	arr[i] = raycast(start_radian, meta);
+	// 	double temp = meta->player.a - start_radian;
+	// 	if(temp > 2*PI)
+	// 		temp -= 2*PI;
+	// 	else if(temp < 0)
+	// 		temp += 2*PI;
+	// 	arr[i].len = arr[i].len * cos(temp);
+	// 	start_radian += step;
+	// }
 }
+
+// int is_wall2(point_t origin, double x_dist, double y_dist, map_t *map)
+// {
+
+// }
+
+// ray ray_build()
+// {
+
+// }
+
+// ray raycast2(point_t origin, double angle, map_t *map)
+// {
+// 	double ray_dir_x = 
+
+
+
+
+
+
+// 	double x_dist, y_dist, d_x, d_y;
+// 	d_y = tan(angle), d_x = 1/tan(angle);
+// 	if (angle > PI/2 && angle < 1.5*PI) {x_dist = ((int)origin.x>>6)<<6;}
+// 	else {x_dist = ((int)origin.x>>6)<<6 + 64;}
+// 	if (angle > PI) {y_dist = ((int)origin.y>>6)<<6;}
+// 	else {y_dist = ((int)origin.y>>6)<<6 + 64;}
+
+// 	int i = 0;
+// 	while (i < 8 && !is_wall2(origin, x_dist, y_dist, map)) {
+// 		if (x_dist < y_dist) {
+// 			x_dist += d_x;
+// 		}
+// 		else {
+// 			y_dist += d_y;
+// 		}
+// 		i++;
+// 	}
+// 	return ray_build(angle, x_dist, y_dist);
+// }
+
+// void raycaster2(raycaster2_t *rc)
+// {
+// 	for (int i = 0; i < rc->nb_rays; i++) {
+// 		double ray_angle =  angle_fix(rc->angle - atan2(i-256, rc->plane_dist));
+// 		rc->rays[i] = raycast2(rc->origin, ray_angle, rc->map);
+// 		rc->rays[i].len = rc->rays[i].len * cos(rc->angle - ray_angle);
+// 	}
+// }

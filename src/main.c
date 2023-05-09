@@ -172,7 +172,7 @@ meta_t *setup()
 
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
-	meta->map = read_map("./resources/maps/show_off.cub");
+	meta->map = read_map("./resources/maps/bigger.cub");
 	if (meta->map == NULL) {}
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}

@@ -104,8 +104,16 @@ typedef struct raycaster
 {
 	ray *rays;
 	int num_rays;
-
 }raycaster_t;
+
+typedef struct raycaster2
+{
+	ray *rays;
+	point_t origin;
+	double angle;
+	double plane_dist;
+	int nb_rays;
+}raycaster2_t;
 
 
 typedef struct player
@@ -235,6 +243,10 @@ double player_rot_from_char(char c);
 int find_texture_id(char *line);
 int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
+
+
+void raycaster2(raycaster2_t *rc);
+
 
 
 //error

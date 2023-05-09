@@ -205,13 +205,6 @@ void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_
 	}
 }
 
-//later refactor of draw_scene function
-/* void draw_vertical_slice()
-{
-	draw_ceiling();
-	draw_wall();
-	draw_floor();
-} */
 double dotProd(point_t a,point_t b)
 {
 	return a.x * b.x + a.y * b.y;
@@ -380,6 +373,10 @@ void draw_scene(void *param)
 			wall_lower.x = pos;
 			wall_lower.y = (int)(meta->win_height + wall_height) / 2;
 			drawline(meta->main_scene, (point_t){pos, 0}, wall_upper, meta->map->col_ceil);
+			// if (rayc->rays[i].hit_dir == DIR_NORTH || rayc->rays[i].hit_dir == DIR_SOUTH)
+			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x52a447FF);
+			// else
+			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x46923cFF);
 			draw_wall_on_steroids(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, &meta->shading_lut[(int)rayc->rays[i].len]);
 			drawline(meta->main_scene, wall_lower, (point_t){pos, meta->win_height}, meta->map->col_floor);
 		}
