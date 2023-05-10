@@ -24,7 +24,7 @@
 #define PLAYER_COL_DIST 10
 #define MAX_RAY_ITER 32
 
-#define RAYS 512
+#define RAYS 1024
 
 #define PI 3.1415926
 

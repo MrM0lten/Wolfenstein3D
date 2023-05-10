@@ -298,6 +298,8 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		x_text = (int)itx;
 		ity = 0;
 		y_text = 0;
+		if(vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[screen_x - (projected_width/2) + x].len) //only draw sprite if its closer than current wall at that pixel collumn
+				continue;
 		//printf("x_text = %d\n", x_text);
 		for (int y = 0; y < projected_height; y++) {
 			ity += dy;
@@ -329,7 +331,10 @@ int compare( const void* a, const void* b)
 
 void draw_sprites(meta_t *meta, player_t *player, sprite_t *sprite_arr, int size)
 {
-	double len1 = vector2d_len(sprite_arr[0].pos.x- player->pos.x, sprite_arr[0].pos.y - player->pos.y);
+	draw_sprite(meta, &sprite_arr[0]);
+
+
+/* 	double len1 = vector2d_len(sprite_arr[0].pos.x- player->pos.x, sprite_arr[0].pos.y - player->pos.y);
 	double len2 = vector2d_len(sprite_arr[1].pos.x- player->pos.x, sprite_arr[1].pos.y - player->pos.y);
 	// for (int i = 0; i < size; i++) {
 	// 	sprite_arr[i].len = vector2d_len(sprite_arr[i].pos.x- player->pos.x, sprite_arr[i].pos.y - player->pos.y);
@@ -346,7 +351,7 @@ void draw_sprites(meta_t *meta, player_t *player, sprite_t *sprite_arr, int size
 	else {
 		draw_sprite(meta, &sprite_arr[0]);
 		draw_sprite(meta, &sprite_arr[1]);
-	}
+	} */
 }
 
 
@@ -363,23 +368,23 @@ void draw_scene(void *param)
 	float pos = 0;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-		for (int j = 0; j < delta; j++)
+/* 		for (int j = 0; j < delta; j++)
 		{
-			pos = i * delta + j;
+			pos = i * delta + j; */
 
 			wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
-			wall_upper.x = pos;
+			wall_upper.x = i;
 			wall_upper.y = (int)(meta->win_height - wall_height) / 2;
-			wall_lower.x = pos;
+			wall_lower.x = i;
 			wall_lower.y = (int)(meta->win_height + wall_height) / 2;
-			drawline(meta->main_scene, (point_t){pos, 0}, wall_upper, meta->map->col_ceil);
+			drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
 			// if (rayc->rays[i].hit_dir == DIR_NORTH || rayc->rays[i].hit_dir == DIR_SOUTH)
 			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x52a447FF);
 			// else
 			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x46923cFF);
 			draw_wall_on_steroids(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, &meta->shading_lut[(int)rayc->rays[i].len]);
-			drawline(meta->main_scene, wall_lower, (point_t){pos, meta->win_height}, meta->map->col_floor);
-		}
+			drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
+		//}
 	}
 	draw_sprites(meta, &meta->player, meta->sprite_data, meta->tot_sprites);
 }
