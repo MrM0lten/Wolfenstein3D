@@ -50,10 +50,10 @@ inline uint8_t col_default(uint8_t col, void* effect)
 
 uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(uint8_t, void*), void* transform)
 {
-		return( (uint32_t)f(texture->pixels[y * texture->width * 4 + 0 + (x * 4)],transform)  << 3 * 8
-			  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 1 + (x * 4)],transform)  << 2 * 8
-			  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 2 + (x * 4)],transform) << 1 * 8
-			  | (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
+	return( (uint32_t)f(texture->pixels[y * texture->width * 4 + 0 + (x * 4)],transform)  << 3 * 8
+		  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 1 + (x * 4)],transform)  << 2 * 8
+		  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 2 + (x * 4)],transform) << 1 * 8
+		  | (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
 }
 
 int darken(int col, float modifier) {
@@ -76,7 +76,7 @@ mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
 	point_t ray_grid_pos = (point_t){ray->hit.x/CUBE_DIM,ray->hit.y/CUBE_DIM};
 
 	//debug_point(&ray_grid_pos);
-	if(map->map[(int)ray_grid_pos.y * map->map_x + (int)ray_grid_pos.x] == GD_DOOR)
+	if(map->map[(int)ray_grid_pos.y * map->map_x + (int)ray_grid_pos.x] == GD_DOOR_CLOSE)
 		return map->texture_data[TXT_DOOR];
 	//printf("hit dir = %d\n",ray->hit_dir);
 
@@ -116,7 +116,7 @@ void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t scre
 	float delta = CUBE_DIM / wall_height;
 	float it = 0;
 
-	for (int i = 0; i < (int)wall_height; i++)
+	for (int i = 0; i < (int)wall_height + 1; i++)
 	{
 		it += delta;
 		y_text = (int)it;
@@ -135,104 +135,10 @@ void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t scre
 
 }
 
-
-void draw_wall(mlx_image_t *image, ray *ray,mlx_texture_t *texture, point_t screen_pos, float wall_height,float* color_lut)
-{
-	uint32_t col;
-	int x_text;
-	if(ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH)
-		x_text = (int)ray->hit.x % CUBE_DIM;
-	else
-		x_text = (int)ray->hit.y % CUBE_DIM;
-
-	int start_pos_y = (int)((IMG_HEIGHT - wall_height)/2);
-	int end_pos_y = (int)((IMG_HEIGHT + wall_height)/2);
-	int total_pixel_to_draw = end_pos_y - start_pos_y;
-	float delta =(float)(total_pixel_to_draw)/CUBE_DIM;
-	float it = delta;
-	int y_text = 0;
-	//printf("ytext start [%d], end [%d], start -end [%d]\n",start_pos_y,end_pos_y,total_pixel_to_draw);
-	//printf("delta = [%f]\n",delta);
-	float negdelta = (float)CUBE_DIM/total_pixel_to_draw;
-	float negit = negdelta;
-	//printf("\n");
-	//printf("wallheight vs total_pixel_to_draw [%f][%d]",wall_height,total_pixel_to_draw);
-	for (int i = 0; i < total_pixel_to_draw; i++)
-	{
-		if(total_pixel_to_draw >= 64) {
-			it--;
-			if (it < 0) {
-				it += delta;
-				y_text++;
-			}
-		}
-		else {
-			//printf("in here\n");
-			negit += negdelta;
-			y_text = (int)negit;
-			if(y_text >= 64) //setting to max value of text array
-				y_text = 63;
-			//printf("ytext = [%d]\n",y_text);
-		}
-		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)] * color_lut[(int)ray->len]) << 3 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)] * color_lut[(int)ray->len]) << 2 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)] * color_lut[(int)ray->len]) << 1 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)]) << 0 * 8  ;
-		//printf("RAY [%f][%f]\n", ray->hit.x, ray->hit.y);
-
-		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y}, col);
-	}
-}
-
-void draw_wall_flip(mlx_image_t *image, ray *ray, mlx_texture_t *texture, point_t screen_pos, float wall_height,float* color_lut)
-{
-	uint32_t col;
-	int x_text;
-	if(ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH)
-		x_text = CUBE_DIM - ((int)ray->hit.x % CUBE_DIM) - 1;
-	else
-		x_text = CUBE_DIM - ((int)ray->hit.y % CUBE_DIM) - 1;
-
-	int start_pos_y = (int)((IMG_HEIGHT - wall_height) / 2);
-	int end_pos_y = (int)((IMG_HEIGHT + wall_height) / 2);
-	int total_pixel_to_draw = end_pos_y - start_pos_y;
-	float delta =(float)(end_pos_y - start_pos_y) / CUBE_DIM;
-	float it = delta;
-	int y_text = 0;
-	float negdelta = (float)CUBE_DIM/total_pixel_to_draw;
-	float negit = negdelta;
-	for (int i = 0; i < end_pos_y - start_pos_y; i++)
-	{
-		if(total_pixel_to_draw >= 64) {
-			it--;
-			if (it < 0) {
-				it += delta;
-				y_text++;
-			}
-		}
-		else {
-			//printf("in here\n");
-			negit += negdelta;
-			y_text = (int)negit;
-			if(y_text >= 64) //setting to max value of text array
-				y_text = 63;
-			//printf("ytext = [%d]\n",y_text);
-		}
-		col = (uint32_t)(texture->pixels[y_text * texture->width * 4 + 0 + (x_text * 4)]* color_lut[(int)ray->len]) << 3 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 1 + (x_text * 4)]* color_lut[(int)ray->len]) << 2 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 2 + (x_text * 4)]* color_lut[(int)ray->len]) << 1 * 8
-			| (uint32_t)(texture->pixels[y_text * texture->width * 4 + 3 + (x_text * 4)]) << 0 * 8;
-		//printf("col = %u\n",col);
-		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + start_pos_y}, col);
-	}
-}
-
 double dotProd(point_t a,point_t b)
 {
 	return a.x * b.x + a.y * b.y;
 }
-
-
 
 void draw_sprite(meta_t* meta, sprite_t* sprite)
 {
@@ -418,7 +324,7 @@ void draw_scene(void *param)
 	float delta = IMG_WIDTH/meta->raycaster.num_rays;
 	//printf("delta = [%f]\n",delta);
 	float pos = 0;
-	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta);
+	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta,GD_WALL | GD_DOOR_CLOSE);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
 /* 		for (int j = 0; j < delta; j++)
 		{

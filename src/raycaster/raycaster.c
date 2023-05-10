@@ -25,13 +25,43 @@ int is_wall(double rx, double ry, meta_t* meta)
 	int mx = (int)rx>>6;
 	int my = (int)ry>>6;
 	int mp = my * meta->map->map_x + mx;
-	if (mp >= 0 && mp <  meta->map->map_dim && (meta->map->map[mp] == GD_WALL || meta->map->map[mp] == GD_DOOR)) {
+	if (mp >= 0 && mp <  meta->map->map_dim && (meta->map->map[mp] == GD_WALL || meta->map->map[mp] == GD_DOOR_OPEN)) {
 		return meta->map->map[mp];
 	}
 	return 0;
 }
 
-point_t raycast_hor(double radian, meta_t* meta)
+// 0000 -> 1100
+// if map_value == 1 do operation 1000_2 & 1100_2 = true
+// if map_value == 2 do operation 0100_2 & 1100_2 = true
+// if map_value == 3 do operation 0010_2 & 1100_2 = false
+
+
+// Mask
+/*
+	WALL		:= 1 << 0
+	DOOR_CLOSE	:= 1 << 1
+	DOOR_OPEN	:= 1 << 2
+	HIDDEN_DOOR	:= 1 << 3
+
+*/
+
+int is_hit(double rx, double ry, meta_t* meta, int channel)
+{
+	if (rx < 0 || ry < 0)
+		return 0;
+	int mx = (int)rx>>6;
+	int my = (int)ry>>6;
+	int mp = my * meta->map->map_x + mx;
+	if (mp >= 0 && mp <  meta->map->map_dim) 
+	{
+		if (meta->map->map[mp] & channel) 
+			return meta->map->map[mp];
+	}
+	return 0;
+}
+
+point_t raycast_hor(double radian, meta_t* meta,int channel)
 {
 	double px = meta->player.pos.x, py = meta->player.pos.y, rx, ry, xo, yo;
 	if (radian > PI) {
@@ -45,14 +75,14 @@ point_t raycast_hor(double radian, meta_t* meta)
 		yo = CUBE_DIM, xo = yo/tan(radian);
 	}
 	if (radian == 0 || radian == PI) {return (point_t){px,py};}
-	for (int i = 0 ; i < MAX_RAY_ITER && !is_wall(rx, ry, meta); i++) {
+	for (int i = 0 ; i < MAX_RAY_ITER && !is_hit(rx, ry, meta,channel); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
 	}
 	return (point_t){rx,ry};
 }
 
-point_t raycast_ver(double radian, meta_t* meta)
+point_t raycast_ver(double radian, meta_t* meta,int channel)
 {
 	double px = meta->player.pos.x, py = meta->player.pos.y, rx, ry, xo, yo;
 	if (radian > PI/2 && radian < 1.5*PI) {
@@ -66,19 +96,18 @@ point_t raycast_ver(double radian, meta_t* meta)
 		xo = CUBE_DIM, yo = tan(radian) * xo;
 	}
 	if (radian == PI / 2 || radian == PI * 1.5) {return (point_t){px,py};}
-	for (int i = 0; i < MAX_RAY_ITER && !is_wall(rx, ry, meta); i++) {
+	for (int i = 0; i < MAX_RAY_ITER && !is_hit(rx, ry, meta, channel); i++) {
 		rx = rx + xo;
 		ry = ry + yo;
 	}
-
 	return (point_t){rx,ry};
 }
 
 
-ray raycast(double radian, meta_t* meta)
+ray raycast(double radian, meta_t* meta,int channel)
 {
-	point_t hray = raycast_hor(radian, meta);
-	point_t vray = raycast_ver(radian, meta);
+	point_t hray = raycast_hor(radian, meta, channel);
+	point_t vray = raycast_ver(radian, meta, channel);
 	double len_hor = vector2d_len(hray.x - meta->player.pos.x,hray.y - meta->player.pos.y);
 	double len_vert = vector2d_len(vray.x - meta->player.pos.x,vray.y - meta->player.pos.y);
 	ray ray;
@@ -100,10 +129,9 @@ ray raycast(double radian, meta_t* meta)
 		else
 			ray.hit_dir = DIR_SOUTH;
 	}
-	ray.hit_id = is_wall(ray.hit.x, ray.hit.y, meta);
+	ray.hit_id = is_hit(ray.hit.x, ray.hit.y, meta, channel);
 	return ray;
 }
-
 
 double angle_fix(double angle)
 {
@@ -114,12 +142,12 @@ double angle_fix(double angle)
 	return angle;
 }
 //actually refactor this properly!
-void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
+void raycaster(int nb_rays, double fov, ray *arr, meta_t *meta, int channel)
 {
 	player_t *p = &meta->player;
 	for (int i = 0; i < nb_rays; i++) {
 		double ray_angle =  angle_fix(p->a - (atan2(i-(nb_rays/2), meta->dist_to_proj)*-1));
-		arr[i] = raycast(ray_angle, meta);
+		arr[i] = raycast(ray_angle, meta, channel);
 		arr[i].len = arr[i].len * cos(p->a - ray_angle);
 	}
 /* 	debug_meta(meta);

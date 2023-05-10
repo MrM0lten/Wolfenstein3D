@@ -54,10 +54,11 @@ enum map_type_id{
 
 enum grid_type
 {
-	GD_FREE = 0,
-	GD_WALL = 1,
-	GD_DOOR = 2,
-	GD_VOID = 9,
+	GD_FREE = 0 << 0,
+	GD_WALL = 1 << 1,
+	GD_DOOR_OPEN = 1 << 2,
+	GD_DOOR_CLOSE = 1 << 3,
+	GD_VOID = 1 << 8
 };
 
 typedef struct debug_s
@@ -113,6 +114,7 @@ typedef struct raycaster2
 	double angle;
 	double plane_dist;
 	int nb_rays;
+	int channel;
 }raycaster2_t;
 
 
@@ -195,9 +197,9 @@ typedef struct meta
 
 //len needs to be renamed or additional param used for actual wall pixel height
 // Raycaster
-void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta);
+void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta, int channel);
 void print_raydata();
-ray raycast(double radian, meta_t* meta);
+ray raycast(double radian, meta_t* meta, int channel);
 double	vector2d_len(double x, double y);
 
 // Drawing

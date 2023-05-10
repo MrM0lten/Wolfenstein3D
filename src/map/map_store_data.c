@@ -85,7 +85,7 @@ static void fill_map(map_t* map,t_list* lst_line)
             else if(content[i] == '1')
                 map->map[pos] = GD_WALL;
             else if(content[i] == '2')
-                map->map[pos] = GD_DOOR;
+                map->map[pos] = GD_DOOR_CLOSE;
             else if(content[i] == ' ')
                 map->map[pos] = GD_VOID;
             else if(ft_strchr("NSEW",content[i])) {

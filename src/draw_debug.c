@@ -44,7 +44,7 @@ void draw_debugmap(void *param)
 			if (meta->map->map[j * meta->map->map_x + i] == GD_WALL) {
 				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_WALL, DBG_GRID_BORDER);
 			}
-			else if(meta->map->map[j * meta->map->map_x + i] == GD_DOOR)
+			else if(meta->map->map[j * meta->map->map_x + i] == GD_DOOR_OPEN)
 				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_DOOR, DBG_GRID_BORDER);
 			else if(meta->map->map[j * meta->map->map_x + i] == GD_VOID)
 				draw_square(debug->img, (point_t){i * debug->grid_size, j * debug->grid_size}, debug->grid_size, DBG_GRID_VOID, DBG_GRID_BORDER);

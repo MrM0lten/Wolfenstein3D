@@ -6,13 +6,18 @@ void ft_key(mlx_key_data_t keydata, void* param)
 
 	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
 	{
-		ray ray = raycast(meta->player.a, meta);
-		if(ray.hit_id == GD_DOOR && ray.len <= 100.f)
+		ray ray = raycast(meta->player.a, meta,GD_DOOR_CLOSE | GD_DOOR_OPEN);
+		debug_ray(&ray);
+		if(ray.len <= 100.f)
 		{
+			printf("OPEN/CLOSE\n");
 			int mx = (int)ray.hit.x>>6;
 			int my = (int)ray.hit.y>>6;
 			int mp = my * meta->map->map_x + mx;
-			meta->map->map[mp] = GD_FREE;
+			if(meta->map->map[mp] == GD_DOOR_CLOSE)
+				meta->map->map[mp] = GD_DOOR_OPEN;
+			else
+				meta->map->map[mp] = GD_DOOR_CLOSE;
 		}
 	}
 
@@ -44,6 +49,9 @@ void ft_hook(void* param)
 	int p_neggrid_offset_x = (player->pos.x-offset_x)/CUBE_DIM;
 	int p_neggrid_offset_y = (player->pos.y-offset_y)/CUBE_DIM;
 
+	int grid_id1;
+	int grid_id2;
+
 	//printf("player grid = [%d][%d]\n",p_grid_x,p_grid_y);
 	//printf("player offset grid = [%d][%d]\n",p_posgrid_offset_x,p_posgrid_offset_y);
 	//printf("player delta = [%f][%f]\n",player->dx,player->dy);
@@ -65,15 +73,19 @@ void ft_hook(void* param)
 	}
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_UP) || mlx_is_key_down(meta->mlx, MLX_KEY_W)) {
 
-		if(meta->map->map[p_grid_y * meta->map->map_x + p_posgrid_offset_x] == GD_FREE)
+		grid_id1 = meta->map->map[p_grid_y * meta->map->map_x + p_posgrid_offset_x];
+		grid_id2 = meta->map->map[p_posgrid_offset_y * meta->map->map_x + p_grid_x];
+		if(grid_id1 == GD_FREE || grid_id1 == GD_DOOR_OPEN)
 			player->pos.x += player->dx;
-		if(meta->map->map[p_posgrid_offset_y * meta->map->map_x + p_grid_x] == GD_FREE)
+		if(grid_id2 == GD_FREE || grid_id2 == GD_DOOR_OPEN)
 			player->pos.y += player->dy;
 	}
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN) || mlx_is_key_down(meta->mlx, MLX_KEY_S)) {
-		if(meta->map->map[p_grid_y * meta->map->map_x + p_neggrid_offset_x] == GD_FREE)
+		grid_id1 = meta->map->map[p_grid_y * meta->map->map_x + p_neggrid_offset_x];
+		grid_id2 = meta->map->map[p_neggrid_offset_y * meta->map->map_x + p_grid_x];
+		if(grid_id1 == GD_FREE || grid_id1 == GD_DOOR_OPEN)
 			player->pos.x -= player->dx;
-		if(meta->map->map[p_neggrid_offset_y * meta->map->map_x + p_grid_x] == GD_FREE)
+		if(grid_id2 == GD_FREE || grid_id2 == GD_DOOR_OPEN)
 			player->pos.y -= player->dy;
 	}
 
@@ -132,7 +144,7 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 
 int setup_mlx(meta_t *meta)
 {
-	meta->mlx = mlx_init(meta->win_width, meta->win_height, "wolfenstein", true);
+	meta->mlx = mlx_init(meta->win_width, meta->win_height, "wolfenstein", false);
 	if (meta->mlx == NULL) {}
 	meta->main_scene = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
 	if (meta->main_scene == NULL) {}

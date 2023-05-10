@@ -31,6 +31,7 @@ map_t* read_map(char *path)
     }
     close(fd);
     if(!validate_map(map)) {
+		debug_map(map);
         free_map(map);
         return NULL;
     }
@@ -94,7 +95,7 @@ int validate_map(map_t* map)
             if(i == TXT_DOOR) {
                 log_string(1,1,"No DOOR texture found, replacing doors with empty tiles");
                 for (int i = 0; i < map->map_dim; i++){
-                    if(map->map[i] == GD_DOOR)
+                    if(map->map[i] == GD_DOOR_OPEN)
                         map->map[i] = GD_FREE;
                 }
             }

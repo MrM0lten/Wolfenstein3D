@@ -10,8 +10,8 @@ int get_grid_val(int x,int y, map_t* map)
 int is_walled(int x, int y, map_t* map)
 {
     int val = map->map[y * map->map_x + x];
-    if(val == 1)
-        return 1;
+    if(val == GD_WALL)
+        return GD_WALL;
     //initially checking for borders
     if(x == 0 || x + 1 == map->map_x || y == 0 || y + 1 == map->map_y)
         return 0;
