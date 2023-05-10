@@ -118,7 +118,7 @@ void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta)
 {
 	player_t *p = &meta->player;
 	for (int i = 0; i < nb_rays; i++) {
-		double ray_angle =  angle_fix(p->a - (atan2(i-256, meta->dist_to_proj)*-1));
+		double ray_angle =  angle_fix(p->a - (atan2(i-(nb_rays/2), meta->dist_to_proj)*-1));
 		arr[i] = raycast(ray_angle, meta);
 		arr[i].len = arr[i].len * cos(p->a - ray_angle);
 	}
