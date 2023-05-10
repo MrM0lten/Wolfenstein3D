@@ -1,7 +1,7 @@
-NO ./resources/textures/bricks.png
-EA ./resources/textures/bricks.png
-SO ./resources/textures/bricks.png
-WE ./resources/textures/bricks.png
+NO ./resources/textures/WF_wood_wall.png
+EA ./resources/textures/WF_wood_wall.png
+SO ./resources/textures/WF_wood_wall.png
+WE ./resources/textures/WF_wood_wall.png
 DO ./resources/textures/door.png
 
 F 0,0,0

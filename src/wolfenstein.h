@@ -178,7 +178,7 @@ typedef struct meta
 	mlx_t* mlx;
 	map_t *map;
 
-	sprite_t* sprite_data;
+	sprite_t** sprite_data;
 	int tot_sprites;
 
 	debug_t debugmap;

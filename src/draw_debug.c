@@ -70,9 +70,9 @@ void draw_debugmap(void *param)
 
     if(debug->db_show_sprites){
         for (int i = 0; i < meta->tot_sprites; i++) {
-            draw_debugsprite(meta->debugmap.img,&meta->sprite_data[i],debug->ratio,0x000000FF);
+            draw_debugsprite(meta->debugmap.img,meta->sprite_data[i],debug->ratio,0x000000FF);
             if(debug->db_show_sprite_dist){
-                drawline(meta->debugmap.img,p_gridpos,(point_t){meta->sprite_data[i].pos.x/debug->ratio,meta->sprite_data[i].pos.y/debug->ratio},0x0000FFFF);
+                drawline(meta->debugmap.img,p_gridpos,(point_t){meta->sprite_data[i]->pos.x/debug->ratio,meta->sprite_data[i]->pos.y/debug->ratio},0x0000FFFF);
             }
         }
     }

@@ -56,6 +56,20 @@ uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(u
 			  | (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
 }
 
+int darken(int col, float modifier) {
+    int r = (col & 0xFF000000) >> 24;
+    int g = (col & 0x00FF0000) >> 16;
+    int b = (col & 0x0000FF00) >> 8;
+    int a = col & 0x000000FF;
+
+	r *= modifier;
+	g *= modifier;
+	b *= modifier;
+
+    int result = (r << 24) | (g << 16) | (b << 8) | a;
+    return result;
+}
+
 //returns a texture within the map texture_data structure based on a given ray, will take direction into account
 mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
 {
@@ -89,6 +103,8 @@ int get_texture_offset_x(ray* ray)
 
 	return -99; //should never get here!
 }
+
+
 //note: using the wall height as iterator might have a plus minus one issue for for loop
 void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, float wall_height, void* effect)
 {
@@ -107,8 +123,14 @@ void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t scre
 		if(y_text >= 63) //setting to max value of text array
 			y_text = 63;
 
-		my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
-		get_color_from_text(texture, x_text, y_text, col_default, effect));
+		if (ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH) {
+			my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
+			darken(get_color_from_text(texture, x_text, y_text, col_default, effect), 0.7));
+		}
+		else {
+			my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
+			get_color_from_text(texture, x_text, y_text, col_default, effect));
+		}
 	}
 
 }
@@ -293,7 +315,7 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 	float itx = 0, ity = 0;
 	int x_text = 0, y_text = 0;
 
-	for (int x = 0; x < projected_width; x++) {
+	for (int x = 0; x < projected_width-1; x++) {
 		itx += dx;
 		x_text = (int)itx;
 		ity = 0;
@@ -301,13 +323,13 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		if(vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[screen_x - (projected_width/2) + x].len) //only draw sprite if its closer than current wall at that pixel collumn
 				continue;
 		//printf("x_text = %d\n", x_text);
-		for (int y = 0; y < projected_height; y++) {
+		for (int y = 0; y < projected_height-1; y++) {
 			ity += dy;
 			y_text = (int)ity;
 			//printf("dy = %f\n", dy);
-			//printf("y_text = %d\n", y_text);
+			//unsigned col = 0;
 			unsigned int col = get_color_from_text(sprite->texture, x_text, y_text, col_default,NULL);
-			if (col != 0x00000000)
+			if (col != 0x980088FF)
 				my_mlx_put_pixel(meta->main_scene, (point_t){screen_x - (projected_width/2) + x, screen_y - projected_height + y}, col);
 		}
 	}
@@ -329,11 +351,41 @@ int compare( const void* a, const void* b)
      else return 1;
 }
 
-void draw_sprites(meta_t *meta, player_t *player, sprite_t *sprite_arr, int size)
+void swap_sprites(sprite_t** a, sprite_t** b)
 {
-	draw_sprite(meta, &sprite_arr[0]);
+	sprite_t* temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+void sort_sprites(sprite_t** sprites,int total_sprites)
+{
+	for (int i = 0; i < total_sprites - 1; i++) {
+		for (int j = 0; j < total_sprites -1; j++) {
+			printf("sprites[%d].len=%f\n",j,sprites[j]->len);
+			printf("sprites[%d].len=%f\n",j+1,sprites[j + 1]->len);
+			if(sprites[j]->len < sprites[j + 1]->len) {
+				printf("SPRITES SWAPPED\n");
+				swap_sprites(&sprites[j],&sprites[j+1]);
+			}
+		}
+	}
+}
 
 
+void draw_sprites(meta_t *meta, player_t *player, sprite_t **sprite_arr, int size)
+{
+	for (int i = 0; i < meta->tot_sprites; i++) {
+		sprite_arr[i]->len = vector2d_len(sprite_arr[i]->pos.x- player->pos.x, sprite_arr[i]->pos.y - player->pos.y);
+	}
+	sort_sprites(sprite_arr,meta->tot_sprites);
+	for (int i = 0; i < meta->tot_sprites; i++) {
+		draw_sprite(meta, sprite_arr[i]);
+	}
+	for (int i = 0; i < meta->tot_sprites; i++) {
+		printf("SPRITES = len at [%d] = [%f]\n",i,sprite_arr[i]->len);
+	}
+	
 /* 	double len1 = vector2d_len(sprite_arr[0].pos.x- player->pos.x, sprite_arr[0].pos.y - player->pos.y);
 	double len2 = vector2d_len(sprite_arr[1].pos.x- player->pos.x, sprite_arr[1].pos.y - player->pos.y);
 	// for (int i = 0; i < size; i++) {
