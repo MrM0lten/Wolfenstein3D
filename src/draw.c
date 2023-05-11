@@ -154,7 +154,7 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		p += 2 * PI;
 	if (p > 2*PI)
 		p -= 2*PI;
-	printf("relative angle %f\n", p);
+	// printf("relative angle %f\n", p);
 
 	int screen_x = p /(PI/2) * IMG_WIDTH;
 	//int screen_y = meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y);
@@ -179,12 +179,12 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 	double halfheight = IMG_HEIGHT/2 ;
 	int screen_y = halfheight + halfheight * zOffset_to_cam/dist_to_obj_vert;
 
-	debug_point(&lookdir);
-	printf("A =[%f]\n",dist_to_obj_fwd);
-	printf("yFOV =[%f]\n",yFOV);
-	printf("B =[%f]\n",dist_to_obj_vert);
-	printf("D =[%f]\n",halfheight);
-	printf("Screen y =[%d]\n",screen_y);
+	// debug_point(&lookdir);
+	// printf("A =[%f]\n",dist_to_obj_fwd);
+	// printf("yFOV =[%f]\n",yFOV);
+	// printf("B =[%f]\n",dist_to_obj_vert);
+	// printf("D =[%f]\n",halfheight);
+	// printf("Screen y =[%d]\n",screen_y);
 
 
 	// mlx_texture_t* texture = get_text_from_hit(map,ray);
@@ -209,10 +209,10 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 //	int	projected_width = (projected_height / sprite->texture->height) * sprite->texture->width;
 	int	projected_width = (projected_height * sprite->texture->width) / sprite->texture->height;
 
-	printf("Projected_height = %d\n", projected_height);
-	printf("Projected_width = %d\n", projected_width);
-	printf("texture_height = %d\n", sprite->texture->height);
-	printf("texture_width = %d\n", sprite->texture->width);
+	// printf("Projected_height = %d\n", projected_height);
+	// printf("Projected_width = %d\n", projected_width);
+	// printf("texture_height = %d\n", sprite->texture->height);
+	// printf("texture_width = %d\n", sprite->texture->width);
 	//	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
 	float dx = (float)sprite->texture->width / projected_width;
@@ -268,10 +268,7 @@ void sort_sprites(sprite_t** sprites,int total_sprites)
 {
 	for (int i = 0; i < total_sprites - 1; i++) {
 		for (int j = 0; j < total_sprites -1; j++) {
-			printf("sprites[%d].len=%f\n",j,sprites[j]->len);
-			printf("sprites[%d].len=%f\n",j+1,sprites[j + 1]->len);
 			if(sprites[j]->len < sprites[j + 1]->len) {
-				printf("SPRITES SWAPPED\n");
 				swap_sprites(&sprites[j],&sprites[j+1]);
 			}
 		}
@@ -288,28 +285,6 @@ void draw_sprites(meta_t *meta, player_t *player, sprite_t **sprite_arr, int siz
 	for (int i = 0; i < meta->tot_sprites; i++) {
 		draw_sprite(meta, sprite_arr[i]);
 	}
-	for (int i = 0; i < meta->tot_sprites; i++) {
-		printf("SPRITES = len at [%d] = [%f]\n",i,sprite_arr[i]->len);
-	}
-	
-/* 	double len1 = vector2d_len(sprite_arr[0].pos.x- player->pos.x, sprite_arr[0].pos.y - player->pos.y);
-	double len2 = vector2d_len(sprite_arr[1].pos.x- player->pos.x, sprite_arr[1].pos.y - player->pos.y);
-	// for (int i = 0; i < size; i++) {
-	// 	sprite_arr[i].len = vector2d_len(sprite_arr[i].pos.x- player->pos.x, sprite_arr[i].pos.y - player->pos.y);
-	// 	printf("calculated len of [%d]= %f\n",i, sprite_arr[i].len);
-	// }
-	//qsort(sprite_arr, size, sizeof(sprite_t), compare);
-	// for (int i = 0; i < size; i++) {
-	// 	draw_sprite(meta, &sprite_arr[i]);
-	// }
-	if (len1 < len2) {
-		draw_sprite(meta, &sprite_arr[1]);
-		draw_sprite(meta, &sprite_arr[0]);
-	}
-	else {
-		draw_sprite(meta, &sprite_arr[0]);
-		draw_sprite(meta, &sprite_arr[1]);
-	} */
 }
 
 

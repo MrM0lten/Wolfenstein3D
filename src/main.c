@@ -7,10 +7,8 @@ void ft_key(mlx_key_data_t keydata, void* param)
 	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
 	{
 		ray ray = raycast(meta->player.a, meta,GD_DOOR_CLOSE | GD_DOOR_OPEN);
-		debug_ray(&ray);
 		if(ray.len <= 100.f)
 		{
-			printf("OPEN/CLOSE\n");
 			int mx = (int)ray.hit.x>>6;
 			int my = (int)ray.hit.y>>6;
 			int mp = my * meta->map->map_x + mx;
@@ -52,9 +50,6 @@ void ft_hook(void* param)
 	int grid_id1;
 	int grid_id2;
 
-	//printf("player grid = [%d][%d]\n",p_grid_x,p_grid_y);
-	//printf("player offset grid = [%d][%d]\n",p_posgrid_offset_x,p_posgrid_offset_y);
-	//printf("player delta = [%f][%f]\n",player->dx,player->dy);
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_ESCAPE))
 		mlx_close_window(meta->mlx);
 	if (mlx_is_key_down(meta->mlx, MLX_KEY_LEFT)|| mlx_is_key_down(meta->mlx, MLX_KEY_A)) {
@@ -188,8 +183,8 @@ meta_t *setup()
 	if (meta->map == NULL) {}
 	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
 	if (setup_mlx(meta) == 0) {}
-	if(setup_raycaster(&meta->raycaster, RAYS)) {}
-	if(setup_debugmap(meta,&meta->debugmap,DEBUGMAP_WIDTH,DEBUGMAP_HEIGHT)){}
+	if (setup_raycaster(&meta->raycaster, RAYS)) {}
+	if (setup_debugmap(meta,&meta->debugmap,DEBUGMAP_WIDTH,DEBUGMAP_HEIGHT)){}
 
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
@@ -214,15 +209,16 @@ meta_t *setup()
 			val = 0;
 	}
 	meta->tot_sprites = 3;
+	meta->sprite_data = NULL;
 	meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
 	meta->sprite_data[0] =  malloc(sizeof(sprite_t));
-	meta->sprite_data[0]->pos = (point_t){704.f,500.f}; 
+	meta->sprite_data[0]->pos = (point_t){704.f,500.f};
 	meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
 	meta->sprite_data[1] =  malloc(sizeof(sprite_t));
 	meta->sprite_data[1]->pos = (point_t){704.f,400.f};
 	meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
 	meta->sprite_data[2] =  malloc(sizeof(sprite_t));
-	meta->sprite_data[2]->pos = (point_t){680.f,550.f}; 
+	meta->sprite_data[2]->pos = (point_t){680.f,550.f};
 	meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
 	return meta;
 }
@@ -232,6 +228,17 @@ void free_meta(meta_t* meta)
 	free_map(meta->map);
 	free(meta->raycaster.rays);
 	free(meta->shading_lut);
+	if(meta->sprite_data != NULL) {
+		for (int i = 0; i < meta->tot_sprites; i++)
+		{
+			if(meta->sprite_data[i] != NULL) {
+				free(meta->sprite_data[i]->texture->pixels);
+				free(meta->sprite_data[i]->texture);
+				free(meta->sprite_data[i]);
+			}
+		}
+	}
+	free(meta->sprite_data);
 	free(meta);
 }
 

@@ -1,7 +1,7 @@
-NO ./resources/textures/WF_wood_wall.png
-EA ./resources/textures/WF_wood_wall.png
-SO ./resources/textures/WF_wood_wall.png
-WE ./resources/textures/WF_wood_wall.png
+NO ./resources/textures/WF_wall.png
+EA ./resources/textures/WF_wall.png
+SO ./resources/textures/WF_wall.png
+WE ./resources/textures/WF_wall.png
 DO ./resources/textures/door.png
 
 F 0,0,0

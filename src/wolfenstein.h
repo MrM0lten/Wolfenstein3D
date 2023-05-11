@@ -55,9 +55,9 @@ enum map_type_id{
 enum grid_type
 {
 	GD_FREE = 0 << 0,
-	GD_WALL = 1 << 1,
-	GD_DOOR_OPEN = 1 << 2,
-	GD_DOOR_CLOSE = 1 << 3,
+	GD_WALL = 1 << 0,
+	GD_DOOR_OPEN = 1 << 1,
+	GD_DOOR_CLOSE = 1 << 2,
 	GD_VOID = 1 << 8
 };
 
@@ -245,7 +245,7 @@ double player_rot_from_char(char c);
 int find_texture_id(char *line);
 int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
-
+bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight);
 
 void raycaster2(raycaster2_t *rc);
 

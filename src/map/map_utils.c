@@ -88,3 +88,32 @@ int ft_strarr_len(char **arr)
     return i;
 }
 
+//will scale an image according to a new width and height input
+bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight)
+{
+	if (!nwidth || !nheight || nwidth > INT16_MAX || nheight > INT16_MAX)
+    {
+        //give error
+		return false;
+    }
+    if (nwidth != txt->width || nheight != txt->height)
+	{
+	    uint32_t* origin = (uint32_t*)txt->pixels;
+	    float wstep = (float)txt->width / nwidth;
+	    float hstep = (float)txt->height / nheight;
+
+	    uint8_t* tempbuff = calloc(nwidth * nheight, 4);
+	    if (!tempbuff)
+	    	return (false);
+        txt->pixels = tempbuff;
+
+	    uint32_t* destin = (uint32_t*)txt->pixels;
+	    for (uint32_t j = 0; j < nheight; j++)
+	    	for (uint32_t i = 0; i < nwidth; i++)
+	    		destin[j * nwidth + i] = origin[(uint32_t)(j * hstep) * txt->width + (uint32_t)(i * wstep)];
+	    (*(uint32_t*)&txt->width) = nwidth;
+	    (*(uint32_t*)&txt->height) = nheight;
+	    free(origin);
+    }
+    return true;
+}

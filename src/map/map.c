@@ -138,6 +138,11 @@ int validate_map(map_t* map)
     for (int i = 0; i < map->total_textures; i++){
         if(map->file_data[i] != NULL)
             map->texture_data[i] = mlx_load_png(map->file_data[i]);
+        if(map->texture_data[i] != NULL
+            && map->texture_data[i]->height != 64 && map->texture_data[i]->width != 64) {
+                log_string(1,3,"Texture: ",map->file_data[i]," does not conform to the 64x64pixel size requirement. Resizing now...");
+                resize_texture(map->texture_data[i],64,64);
+            }
     }
     return ret;
 }
