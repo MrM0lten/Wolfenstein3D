@@ -110,8 +110,9 @@ void mouse_rot(double xpos, double ypos, void* param)
 		player->dx = cos(2*PI - player->a) * player->speed;
 		player->dy = sin(player->a) * player->speed;
 	}
-	//printf("[%f][%f]\n",xpos,ypos);
-	meta->prev_mouse_pos.x = (float)xpos;
+	//forcing the mouse position to always be at the center of the screen
+	meta->prev_mouse_pos.x = WIN_WIDTH/2;
+	mlx_set_mouse_pos(meta->mlx, WIN_WIDTH/2, WIN_HEIGHT/2);
 }
 
 int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
@@ -192,8 +193,7 @@ meta_t *setup()
 	meta->fps_counter.lastTime = get_time();
 	meta->fps_counter.nbFrames = 0;
 	meta->prev_mouse_pos = (point_t){512,512};
-	meta->mouse_sensitivity = 1.f;
-
+	meta->mouse_sensitivity = 0.15f;
 
 	//currently linear decrease
 	meta->shading_lut = malloc(sizeof(float) * MAX_DRAW_DIST);
@@ -220,6 +220,10 @@ meta_t *setup()
 	meta->sprite_data[2] =  malloc(sizeof(sprite_t));
 	meta->sprite_data[2]->pos = (point_t){680.f,550.f};
 	meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
+
+	//hiding the cursor, while retaining functionality
+	mlx_set_cursor_mode(meta->mlx,MLX_MOUSE_HIDDEN);
+
 	return meta;
 }
 
@@ -256,6 +260,7 @@ int main()
 	mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
 	mlx_image_to_window(meta->mlx, meta->debugmap.img, 512, 0);
 	mlx_set_instance_depth(&meta->debugmap.img->instances[0],-1);
+
 	mlx_loop(meta->mlx);
 	cleanup(meta);
 	return (0);
