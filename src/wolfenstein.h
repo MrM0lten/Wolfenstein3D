@@ -129,10 +129,8 @@ typedef struct player
 }player_t;
 
 /// @brief a structure that holds all information about a Cub3D map
-/// @param text_north Texture path to be used for all walls facing north
-/// @param text_south Texture path to be used for all walls facing south
-/// @param text_west Texture path to be used for all walls facing west
-/// @param text_east Texture path to be used for all walls facing east
+/// @param file_data string array containing all the paths to files
+/// @param texture_data Array of textures loaded into the game from file data
 /// @param col_floor Color to be used to texture the floor
 /// @param col_ceil Color to be used to texture the ceiling
 /// @param map The 1D array containing the actual map data
@@ -191,7 +189,6 @@ typedef struct meta
 	float mouse_sensitivity;
 	float dist_to_proj;
 
-	float* shading_lut;
 }meta_t;
 
 
@@ -247,9 +244,9 @@ int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
 bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight);
 
-void raycaster2(raycaster2_t *rc);
-
-
+//cleanup
+void free_meta(meta_t* meta);
+int cleanup(meta_t* meta);
 
 //error
 void free_and_warn(char ** str);

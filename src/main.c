@@ -131,6 +131,10 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 	debugmap->width = width;
 	debugmap->height = height;
 	debugmap->img = mlx_new_image(meta->mlx, width, height);
+	if(!debugmap->img){
+		log_string(2, 1, "Minimap setup failed");
+		return 0;
+	}
 
 	debugmap->db_rays = 0; //setting to 0 by default because the rays are annoying
 	debugmap->db_show_sprites = 1;
@@ -141,11 +145,15 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 int setup_mlx(meta_t *meta)
 {
 	meta->mlx = mlx_init(meta->win_width, meta->win_height, "wolfenstein", false);
-	if (meta->mlx == NULL) {}
+	if (meta->mlx == NULL) {
+		log_string(2,1,"MLX init failed");
+		return 0;
+	}
 	meta->main_scene = mlx_new_image(meta->mlx, meta->win_width, meta->win_height);
-	if (meta->main_scene == NULL) {}
-
-
+	if (meta->main_scene == NULL) {
+		log_string(2,1,"MLX Main Scene setup failed");
+		return 0;
+	}
 	mlx_loop_hook(meta->mlx, draw_scene, meta);
 	mlx_loop_hook(meta->mlx, draw_debugmap, meta);
 	mlx_loop_hook(meta->mlx, count_frames, meta);
@@ -171,6 +179,10 @@ int setup_raycaster(raycaster_t* raycaster,int num_rays)
 {
 	raycaster->num_rays = num_rays;
 	raycaster->rays = malloc(sizeof(ray) * num_rays);
+	if(!raycaster->rays) {
+		log_string(2,1,"Malloc for Raycaster failed");
+		return 0;
+	}
 	return 1;
 }
 
@@ -180,12 +192,24 @@ meta_t *setup()
 
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
-	meta->map = read_map("./resources/maps/bigger.cub");
-	if (meta->map == NULL) {}
-	if (setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient) == 0) {}
-	if (setup_mlx(meta) == 0) {}
-	if (setup_raycaster(&meta->raycaster, RAYS)) {}
-	if (setup_debugmap(meta,&meta->debugmap,DEBUGMAP_WIDTH,DEBUGMAP_HEIGHT)){}
+	meta->map = read_map("./resources/maps/broken.cub");
+	if (meta->map == NULL) {
+		free(meta);
+		return NULL;
+	}
+	setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient);
+	if (setup_mlx(meta) == 0) {
+		free_meta(meta);
+		return NULL;
+	}
+	if (setup_raycaster(&meta->raycaster, RAYS) == 0) {
+		free_meta(meta);
+		return NULL;
+	}
+	if (setup_debugmap(meta, &meta->debugmap, DEBUGMAP_WIDTH, DEBUGMAP_HEIGHT) == 0){
+		free_meta(meta);
+		return NULL;
+	}
 
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
@@ -195,19 +219,6 @@ meta_t *setup()
 	meta->prev_mouse_pos = (point_t){512,512};
 	meta->mouse_sensitivity = 0.15f;
 
-	//currently linear decrease
-	meta->shading_lut = malloc(sizeof(float) * MAX_DRAW_DIST);
-	float falloff_mult = 1;
-	float step_val = (float)1/MAX_DRAW_DIST * falloff_mult;
-	float val = 1;
-	for (int i = 0; i < MAX_DRAW_DIST; i++)
-	{
-		meta->shading_lut[i] = val;
-		if(val > 0)
-			val -= step_val;
-		else
-			val = 0;
-	}
 	meta->tot_sprites = 3;
 	meta->sprite_data = NULL;
 	meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
@@ -222,7 +233,7 @@ meta_t *setup()
 	meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
 
 	//hiding the cursor, while retaining functionality
-	mlx_set_cursor_mode(meta->mlx,MLX_MOUSE_HIDDEN);
+	mlx_set_cursor_mode(meta->mlx, MLX_MOUSE_HIDDEN);
 
 	return meta;
 }
@@ -231,7 +242,6 @@ void free_meta(meta_t* meta)
 {
 	free_map(meta->map);
 	free(meta->raycaster.rays);
-	free(meta->shading_lut);
 	if(meta->sprite_data != NULL) {
 		for (int i = 0; i < meta->tot_sprites; i++)
 		{
@@ -256,7 +266,9 @@ int cleanup(meta_t* meta)
 int main()
 {
 	meta_t *meta = setup();
-	if (meta == NULL) {}
+	if (meta == NULL) {
+		return 1;
+	}
 	mlx_image_to_window(meta->mlx, meta->main_scene, 0, 0);
 	mlx_image_to_window(meta->mlx, meta->debugmap.img, 512, 0);
 	mlx_set_instance_depth(&meta->debugmap.img->instances[0],-1);

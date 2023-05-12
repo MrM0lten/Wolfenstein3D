@@ -7,9 +7,10 @@ map_t* read_map(char *path)
         return NULL;
     }
     int fd = open(path,O_RDONLY);
-    if(fd == -1)
+    if(fd == -1){
+        log_string(2,2,"Can't find input file:",path);
         return NULL;
-    //check if the format is .cub
+    }
 
     map_t* map = init_map();
     char *line;
@@ -95,7 +96,7 @@ int validate_map(map_t* map)
             if(i == TXT_DOOR) {
                 log_string(1,1,"No DOOR texture found, replacing doors with empty tiles");
                 for (int i = 0; i < map->map_dim; i++){
-                    if(map->map[i] == GD_DOOR_OPEN)
+                    if(map->map[i] == GD_DOOR_CLOSE)
                         map->map[i] = GD_FREE;
                 }
             }
@@ -129,21 +130,33 @@ int validate_map(map_t* map)
                 continue;
             if(val == -1 || !is_walled(x,y,map))
             {
-                log_string(2,1,"Map is impossible.");
+                log_string(2, 1, "Map is impossible.");
                 return 0;
             }
         }
     }
 
-    for (int i = 0; i < map->total_textures; i++){
+    //load pngs into texture buffers, resize them to 64x64,remove transparency
+    for (int i = 0; i < map->total_textures; i++) {
+        int flag = 0;
         if(map->file_data[i] != NULL)
             map->texture_data[i] = mlx_load_png(map->file_data[i]);
         if(map->texture_data[i] != NULL
-            && map->texture_data[i]->height != 64 && map->texture_data[i]->width != 64) {
-                log_string(1,3,"Texture: ",map->file_data[i]," does not conform to the 64x64pixel size requirement. Resizing now...");
+            && (map->texture_data[i]->height != 64 || map->texture_data[i]->width != 64)) {
+                log_string(1, 2, map->file_data[i], " does not conform to the 64x64pixel size requirement. Resizing now...");
                 resize_texture(map->texture_data[i],64,64);
             }
+        size_t total = map->texture_data[i]->height * map->texture_data[i]->width * 4;
+        for (size_t j = 3; j < total; j+= 4) {
+            if(map->texture_data[i]->pixels[j] != 0xFF) {
+                map->texture_data[i]->pixels[j] = 0xFF;
+                flag = 1;
+            }
+        }
+        if(flag)
+            log_string(1, 2, map->file_data[i], ": Walls and Doors need to be fully opaque. Fixing now...");
     }
+
     return ret;
 }
 

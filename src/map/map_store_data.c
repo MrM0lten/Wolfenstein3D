@@ -22,7 +22,6 @@ void store_map_texture(map_t* map,char *line)
 
 void store_map_color(map_t* map,char *line)
 {
-    //printf("found color\n");
     unsigned int i = 1;
     while(line[i] == ' ' || line[i] == '\t' ) //detecting any spaces after the id
         i++;
@@ -32,6 +31,7 @@ void store_map_color(map_t* map,char *line)
         len++;
     if(line[i] == '\n' ) //checking if there is no path after an identifier
         return log_string(1,1,"Found Color identifier, but line is empty");
+
     char *col_str = ft_substr(line,i,len-i);
     if(!col_str)
         return log_string(2,1,"Substring error");
@@ -43,17 +43,15 @@ void store_map_color(map_t* map,char *line)
 
     if(line[0] == 'F') {
         if(map->col_floor != 0)
-            log_string(1,1,"Addional Ceiling Color found!");
+            log_string(1, 1, "Addional Ceiling Color found!");
         map->col_floor = col;
     }
     else if(line[0] == 'C') {
         if(map->col_ceil != 0)
-            log_string(1,1,"Addional Floor Color found!");
+            log_string(1, 1, "Addional Floor Color found!");
         map->col_ceil = col;
     }
 
-
-    //free utilities
     free(col_str);
     int pos = 0;
     while(col_data[pos])
@@ -88,9 +86,9 @@ static void fill_map(map_t* map,t_list* lst_line)
                 map->map[pos] = GD_DOOR_CLOSE;
             else if(content[i] == ' ')
                 map->map[pos] = GD_VOID;
-            else if(ft_strchr("NSEW",content[i])) {
+            else if(ft_strchr("NSEW", content[i])) {
                 if(map->p_pos_x != -1)
-                    log_string(1,1,"Addional Player location found, prev Value overriden!");
+                    log_string(1, 1, "Addional Player location found, prev Value overriden!");
                 map->map[pos] = GD_FREE;
                 map->p_orient = player_rot_from_char(content[i]);
                 map->p_pos_x = i;

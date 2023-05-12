@@ -1,34 +1,35 @@
 NO             ./path_to_the_north_texture asdasd
+C 225,10,0
 SO     ./path_to_the_south_texture
 WE      ./path_to_the_west_texture
 EA      ./path_to_the_east_texture
 
+C 225,30,0
 
-NO             ./path_to_the_north_texture asdasd
-SO     ./path_to_the_south_texture
-WE      ./path_to_the_west_texture
-EA      ./path_to_the_east_texture
+NO             ./resources/textures/boy.png asdasd
+SO     ./resources/textures/boy.png
+WE      ./resources/textures/boy.png
+F 220,100,0
+EA      ./resources/textures/boy.png
 
 NO
 
-EA./path_to_the_east_texture
+DO ./resources/textures/boy.png
+
+aEA./path_to_the_east_texture
+
+
 
 F 220,100,0
-C 225,30,0
-
-
-F 220,100,0
-C 225,10,0
 
 111
 1N11111
-101N11
-1111111
- 1 10
- 1 1
- 1 1
+1SSN11
+11E2111
+ 1W1021
+ 1N111
+ 1S1
  111
-
 
 
 

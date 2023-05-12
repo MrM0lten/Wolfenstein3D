@@ -4,7 +4,7 @@
 //a function specifically made to free a char * and log an error
 void free_and_warn(char ** str)
 {
-    log_string(1,1,"Texture with same Identifier detected");
+    log_string(1, 1, "Texture with same Identifier detected");
     free(*str);
     *str = NULL;
 }

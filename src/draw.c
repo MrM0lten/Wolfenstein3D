@@ -35,13 +35,6 @@ void drawline(mlx_image_t* image, point_t start, point_t end, int color)
 }
 
 //a simple function that simply returns its color without changing the pixel itself
-uint8_t col_lut_mult(uint8_t col, void* effect)
-{
-	//(void)effect;
-	return (col * *(float*)effect);
-}
-
-//a simple function that simply returns its color without changing the pixel itself
 inline uint8_t col_default(uint8_t col, void* effect)
 {
 	(void)effect;
@@ -106,7 +99,7 @@ int get_texture_offset_x(ray* ray)
 
 
 //note: using the wall height as iterator might have a plus minus one issue for for loop
-void draw_wall_on_steroids(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, float wall_height, void* effect)
+void draw_wall(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, float wall_height, void* effect)
 {
 	mlx_texture_t* texture = get_text_from_hit(map,ray);
 	int x_text = get_texture_offset_x(ray); //already knows about flipped or not
@@ -315,7 +308,7 @@ void draw_scene(void *param)
 			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x52a447FF);
 			// else
 			// 	drawline(meta->main_scene, wall_upper, wall_lower, 0x46923cFF);
-			draw_wall_on_steroids(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, &meta->shading_lut[(int)rayc->rays[i].len]);
+			draw_wall(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, NULL);
 			drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
 		//}
 	}
