@@ -9,8 +9,8 @@ CFLAGS	:=	-g -O3 #note causes warnings when compiling unused lib
 TARGET	:= wolfenstein
 
 # Dependencies
-LIB_DEPS := libbutton.a libft.a libmlx42.a libglfw.a
-LIB_DIRS := libft MLX42/build Mlx_Module_Button
+LIB_DEPS := libft.a libmlx42.a libglfw.a
+LIB_DIRS := libft MLX42/build
 
 # Includes
 INC_DIRS := $(wildcard */) $(wildcard */*/) $(wildcard */*/*/) $(wildcard */*/*/*/)
@@ -75,15 +75,10 @@ print-%:
 
 build_mlx:
 	@if ! [ -d "./MLX42" ]; then make install_mlx; fi
-	@if ! [ -d "./Mlx_Module_Button" ]; then make install_mlx_button; fi
 
 install_mlx:
 	git clone https://github.com/codam-coding-college/MLX42.git
 	cd MLX42; cmake -B build; cmake --build build -j4
-
-install_mlx_button:
-	git clone https://github.com/MrM0lten/Mlx_Module_Button.git
-	cd Mlx_Module_Button; $(MAKE)
 
 # Colors
 DEF_COLOR	=	\033[0;39m
