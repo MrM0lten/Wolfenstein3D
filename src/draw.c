@@ -1,5 +1,30 @@
 #include "wolfenstein.h"
 
+void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath)
+{
+	if(filepath == NULL || access(filepath, F_OK | R_OK))
+		return log_string(1,1,"Tried adding sprite, but cant find file.");
+
+	sprite_t* new = malloc(sizeof(sprite_t));
+	new->texture = mlx_load_png(filepath);
+	if(!new->texture) {
+		free(new);
+		return log_string(1,1,"Load PNG for sprite failed.");
+	}
+	new->pos.x = pos_x;
+	new->pos.y = pos_y;
+
+	sprite_t** arr = malloc(sizeof(sprite_t*) * meta->tot_sprites + 1);
+	for (int i = 0; i < meta->tot_sprites; i++)
+		arr[i] = meta->sprite_data[i];
+	arr[meta->tot_sprites] = new;
+	if(meta->sprite_data != NULL)
+		free(meta->sprite_data);
+	meta->sprite_data = arr;
+	meta->tot_sprites++;
+
+}
+
 void my_mlx_put_pixel(mlx_image_t *img, point_t pos, int color)
 {
 	char	*dst;
@@ -147,21 +172,10 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		p += 2 * PI;
 	if (p > 2*PI)
 		p -= 2*PI;
-	// printf("relative angle %f\n", p);
 
 	int screen_x = p /(PI/2) * IMG_WIDTH;
-	//int screen_y = meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y);
-	//int screen_y = (20 *meta->dist_to_proj)/vector2d_len(sp.x,sp.y);
-	//int screen_y = ((IMG_HEIGHT - 10 +IMG_HEIGHT/2) -(vector2d_len(sp.x,sp.y))*(cos(p)/sin(meta->player.fov/2)))/2;
-	//screen_y = (screen_height - sprite_height / (distance * cos(vertical_angle - player_vertical_angle))) / 2
-/* 	debug_point(&sp);
-	printf("sprite angle = [%f]\n",a);
-	printf("ratio = [%f]\n",p /(PI/2));
-	printf("player angle = [%f]\n",meta->player.a);
-	printf("Screen Pos = [%d][%d]\n",screen_x,screen_y);
- */
-	//meta->dist_to_proj * 32 /vector2d_len(sp.x,sp.y)
-
+	if(screen_x <= 0 || screen_x >= 1024) //if sprite is offscreen, no need to draw it
+		return;
 
 	point_t lookdir = (point_t) {cos(meta->player.a),sin(meta->player.a)};
 
@@ -172,41 +186,8 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 	double halfheight = IMG_HEIGHT/2 ;
 	int screen_y = halfheight + halfheight * zOffset_to_cam/dist_to_obj_vert;
 
-	// debug_point(&lookdir);
-	// printf("A =[%f]\n",dist_to_obj_fwd);
-	// printf("yFOV =[%f]\n",yFOV);
-	// printf("B =[%f]\n",dist_to_obj_vert);
-	// printf("D =[%f]\n",halfheight);
-	// printf("Screen y =[%d]\n",screen_y);
-
-
-	// mlx_texture_t* texture = get_text_from_hit(map,ray);
-	// int x_text = get_texture_offset_x(ray); //already knows about flipped or not
-	// int y_text = 0;
-
-	// //calculate what direction to read from
-	// float delta = CUBE_DIM / wall_height;
-	// float it = 0;
-
-	// for (int i = 0; i < (int)wall_height; i++)
-	// {
-	// 	it += delta;
-	// 	y_text = (int)it;
-	// 	if(y_text >= 63) //setting to max value of text array
-	// 		y_text = 63;
-
-	// 	my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
-	// 	get_color_from_text(texture, x_text, y_text, col_default, effect));
-
-	int projected_height = meta->dist_to_proj * (64) / vector2d_len(sp.x,sp.y);
-//	int	projected_width = (projected_height / sprite->texture->height) * sprite->texture->width;
+	int projected_height = meta->dist_to_proj * (64) / (vector2d_len(sp.x,sp.y) * cos(meta->player.a - angle_fix(atan2(sp.y, sp.x))));
 	int	projected_width = (projected_height * sprite->texture->width) / sprite->texture->height;
-
-	// printf("Projected_height = %d\n", projected_height);
-	// printf("Projected_width = %d\n", projected_width);
-	// printf("texture_height = %d\n", sprite->texture->height);
-	// printf("texture_width = %d\n", sprite->texture->width);
-	//	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
 
 	float dx = (float)sprite->texture->width / projected_width;
 	float dy = (float)sprite->texture->height / projected_height;
@@ -214,28 +195,22 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 	float itx = 0, ity = 0;
 	int x_text = 0, y_text = 0;
 
-	for (int x = 0; x < projected_width-1; x++) {
+	for (int x = 0; x < projected_width - 1; x++) {
 		itx += dx;
 		x_text = (int)itx;
 		ity = 0;
 		y_text = 0;
 		if(vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[screen_x - (projected_width/2) + x].len) //only draw sprite if its closer than current wall at that pixel collumn
 				continue;
-		//printf("x_text = %d\n", x_text);
 		for (int y = 0; y < projected_height-1; y++) {
 			ity += dy;
 			y_text = (int)ity;
-			//printf("dy = %f\n", dy);
-			//unsigned col = 0;
 			unsigned int col = get_color_from_text(sprite->texture, x_text, y_text, col_default,NULL);
 			if (col != 0x980088FF)
 				my_mlx_put_pixel(meta->main_scene, (point_t){screen_x - (projected_width/2) + x, screen_y - projected_height + y}, col);
 		}
 	}
 
-	// printf("meta->dist_to_proj =[%f]\n",meta->dist_to_proj);
-	// printf("proportion =[%d]\n",projected_height);
-	// draw_square(meta->main_scene,(point_t){screen_x-projected_height/2,screen_y -projected_height},projected_height,0xFF00FFFF,0x00000000);
 }
 
 int compare( const void* a, const void* b)

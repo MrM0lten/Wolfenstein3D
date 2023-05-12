@@ -192,7 +192,7 @@ meta_t *setup()
 
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
-	meta->map = read_map("./resources/maps/broken.cub");
+	meta->map = read_map("./resources/maps/bigger.cub");
 	if (meta->map == NULL) {
 		free(meta);
 		return NULL;
@@ -212,26 +212,31 @@ meta_t *setup()
 	}
 
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
+	meta->mouse_sensitivity = 0.15f;
 
 	meta->fps_counter.img = NULL;
 	meta->fps_counter.lastTime = get_time();
 	meta->fps_counter.nbFrames = 0;
 	meta->prev_mouse_pos = (point_t){512,512};
-	meta->mouse_sensitivity = 0.15f;
 
-	meta->tot_sprites = 3;
+
+	meta->tot_sprites = 0;
 	meta->sprite_data = NULL;
-	meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
-	meta->sprite_data[0] =  malloc(sizeof(sprite_t));
-	meta->sprite_data[0]->pos = (point_t){704.f,500.f};
-	meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
-	meta->sprite_data[1] =  malloc(sizeof(sprite_t));
-	meta->sprite_data[1]->pos = (point_t){704.f,400.f};
-	meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
-	meta->sprite_data[2] =  malloc(sizeof(sprite_t));
-	meta->sprite_data[2]->pos = (point_t){680.f,550.f};
-	meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
+	add_sprite(meta,704.f,400.f,"./resources/textures/officer.png");
+	// add_sprite(meta,(point_t){704.f,500.f},"./resources/textures/officer.png");
+	// add_sprite(meta,(point_t){704.f,600.f},"./resources/textures/officer.png");
+	// meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
+	// meta->sprite_data[0] =  malloc(sizeof(sprite_t));
+	// meta->sprite_data[0]->pos = (point_t){704.f,500.f};
+	// meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
+	// meta->sprite_data[1] =  malloc(sizeof(sprite_t));
+	// meta->sprite_data[1]->pos = (point_t){704.f,400.f};
+	// meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
+	// meta->sprite_data[2] =  malloc(sizeof(sprite_t));
+	// meta->sprite_data[2]->pos = (point_t){680.f,550.f};
+	// meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
 
+	printf("total sprites = %d\n",meta->tot_sprites);
 	//hiding the cursor, while retaining functionality
 	mlx_set_cursor_mode(meta->mlx, MLX_MOUSE_HIDDEN);
 

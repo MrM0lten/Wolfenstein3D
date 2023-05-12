@@ -243,6 +243,8 @@ int find_texture_id(char *line);
 int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
 bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight);
+void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath);
+double angle_fix(double angle);
 
 //cleanup
 void free_meta(meta_t* meta);
