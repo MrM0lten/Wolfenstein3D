@@ -14,7 +14,7 @@ void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath)
 	new->pos.x = pos_x;
 	new->pos.y = pos_y;
 
-	sprite_t** arr = malloc(sizeof(sprite_t*) * meta->tot_sprites + 1);
+	sprite_t** arr = malloc(sizeof(sprite_t*) * (meta->tot_sprites + 1));
 	for (int i = 0; i < meta->tot_sprites; i++)
 		arr[i] = meta->sprite_data[i];
 	arr[meta->tot_sprites] = new;
@@ -201,9 +201,8 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		ity = 0;
 		y_text = 0;
 		ray_index = screen_x - (projected_width/2) + x;
-		if(ray_index <= 0 || ray_index >= RAYS || vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[ray_index].len) {
+		if(ray_index <= 0 || ray_index >= RAYS || vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[ray_index].len) //only draw sprite if its closer than current wall at that pixel collumn
 				continue;
-		}//only draw sprite if its closer than current wall at that pixel collumn
 		for (int y = 0; y < projected_height-1; y++) {
 			ity += dy;
 			y_text = (int)ity;
