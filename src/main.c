@@ -1,120 +1,5 @@
 #include "wolfenstein.h"
 
-void ft_key(mlx_key_data_t keydata, void* param)
-{
-	meta_t* meta = param;
-
-	if(mlx_is_key_down(meta->mlx, MLX_KEY_E))
-	{
-		ray ray = raycast(meta->player.a, meta,GD_DOOR_CLOSE | GD_DOOR_OPEN);
-		if(ray.len <= 100.f)
-		{
-			int mx = (int)ray.hit.x>>6;
-			int my = (int)ray.hit.y>>6;
-			int mp = my * meta->map->map_x + mx;
-			if(meta->map->map[mp] == GD_DOOR_CLOSE)
-				meta->map->map[mp] = GD_DOOR_OPEN;
-			else
-				meta->map->map[mp] = GD_DOOR_CLOSE;
-		}
-	}
-
-	debug_toggles(meta);
-}
-
-void ft_hook(void* param)
-{
-	meta_t* meta = param;
-	player_t *player = &meta->player;
-
-
-	//handle player collision, by creation a vector in front and behind the player
-	int p_grid_x = player->pos.x/CUBE_DIM;
-	int p_grid_y = player->pos.y/CUBE_DIM;
-	int offset_x = 0;
-	int offset_y = 0;
-	if(player->dx > 0)
-		offset_x = PLAYER_COL_DIST;
-	else
-		offset_x = -PLAYER_COL_DIST;
-	if(player->dy > 0)
-		offset_y = PLAYER_COL_DIST;
-	else
-		offset_y = -PLAYER_COL_DIST;
-
-	int p_posgrid_offset_x = (player->pos.x+offset_x)/CUBE_DIM;
-	int p_posgrid_offset_y = (player->pos.y+offset_y)/CUBE_DIM;
-	int p_neggrid_offset_x = (player->pos.x-offset_x)/CUBE_DIM;
-	int p_neggrid_offset_y = (player->pos.y-offset_y)/CUBE_DIM;
-
-	int grid_id1;
-	int grid_id2;
-
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_ESCAPE))
-		mlx_close_window(meta->mlx);
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_LEFT)|| mlx_is_key_down(meta->mlx, MLX_KEY_A)) {
-		player->a -=0.1;
-		if(player->a < 0)
-			player->a += 2 * PI;
-		player->dx = cos(player->a) * 5;
-		player->dy = sin(player->a) * 5;
-	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_RIGHT) || mlx_is_key_down(meta->mlx, MLX_KEY_D)) {
-		player->a +=0.1;
-		if(player->a > 2 * PI)
-			player->a -= 2 * PI;
-		player->dx = cos(2*PI - player->a) * 5;
-		player->dy = sin(player->a) * 5;
-	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_UP) || mlx_is_key_down(meta->mlx, MLX_KEY_W)) {
-
-		grid_id1 = meta->map->map[p_grid_y * meta->map->map_x + p_posgrid_offset_x];
-		grid_id2 = meta->map->map[p_posgrid_offset_y * meta->map->map_x + p_grid_x];
-		if(grid_id1 == GD_FREE || grid_id1 == GD_DOOR_OPEN)
-			player->pos.x += player->dx;
-		if(grid_id2 == GD_FREE || grid_id2 == GD_DOOR_OPEN)
-			player->pos.y += player->dy;
-	}
-	if (mlx_is_key_down(meta->mlx, MLX_KEY_DOWN) || mlx_is_key_down(meta->mlx, MLX_KEY_S)) {
-		grid_id1 = meta->map->map[p_grid_y * meta->map->map_x + p_neggrid_offset_x];
-		grid_id2 = meta->map->map[p_neggrid_offset_y * meta->map->map_x + p_grid_x];
-		if(grid_id1 == GD_FREE || grid_id1 == GD_DOOR_OPEN)
-			player->pos.x -= player->dx;
-		if(grid_id2 == GD_FREE || grid_id2 == GD_DOOR_OPEN)
-			player->pos.y -= player->dy;
-	}
-
-}
-
-//calculates the player rotation based on the current and previous mouse positon
-void mouse_rot(double xpos, double ypos, void* param)
-{
-	meta_t* meta = param;
-	player_t *player = &meta->player;
-	float mouse_dx;
-	if((float)xpos < meta->prev_mouse_pos.x)
-	{
-		mouse_dx = meta->prev_mouse_pos.x - xpos;
-		player->a -= (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
-		if(player->a < 0)
-			player->a += 2 * PI;
-		player->dx = cos(player->a) * player->speed;
-		player->dy = sin(player->a) * player->speed;
-	}
-	else
-	{
-		mouse_dx = xpos - meta->prev_mouse_pos.x;
-		player->a += (mouse_dx*2*PI)/WIN_WIDTH * meta->mouse_sensitivity;
-		if(player->a > 2 * PI)
-			player->a -= 2 * PI;
-		player->dx = cos(2*PI - player->a) * player->speed;
-		player->dy = sin(player->a) * player->speed;
-	}
-	//forcing the mouse position to always be at the center of the screen
-	meta->prev_mouse_pos.x = WIN_WIDTH/2;
-	mlx_set_mouse_pos(meta->mlx, WIN_WIDTH/2, WIN_HEIGHT/2);
-}
-
 int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 {
 	int grid_size_x = width/meta->map->map_x;
@@ -124,10 +9,8 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 		debugmap->grid_size = meta->map->map_x;
 	else
 		debugmap->grid_size = meta->map->map_x;
-
 	debugmap->grid_size = height/find_next_pow(debugmap->grid_size);
 	debugmap->ratio = (CUBE_DIM/debugmap->grid_size);
-
 	debugmap->width = width;
 	debugmap->height = height;
 	debugmap->img = mlx_new_image(meta->mlx, width, height);
@@ -135,8 +18,7 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 		log_string(2, 1, "Minimap setup failed");
 		return 0;
 	}
-
-	debugmap->db_rays = 0; //setting to 0 by default because the rays are annoying
+	debugmap->db_rays = 0;
 	debugmap->db_show_sprites = 1;
 	debugmap->db_show_sprite_dist = 1;
 	return 1;
@@ -186,10 +68,17 @@ int setup_raycaster(raycaster_t* raycaster,int num_rays)
 	return 1;
 }
 
+int setup_fps_counter(fps_counter_t* fps_counter)
+{
+	fps_counter->img = NULL;
+	fps_counter->lastTime = get_time();
+	fps_counter->nbFrames = 0;
+	return 1;
+}
+
 meta_t *setup()
 {
 	meta_t *meta = malloc(sizeof(meta_t));
-
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
 	meta->map = read_map("./resources/maps/bigger.cub");
@@ -198,51 +87,23 @@ meta_t *setup()
 		return NULL;
 	}
 	setup_player(&meta->player,(point_t){meta->map->p_pos_x,meta->map->p_pos_y},meta->map->p_orient);
-	if (setup_mlx(meta) == 0) {
-		free_meta(meta);
-		return NULL;
-	}
-	if (setup_raycaster(&meta->raycaster, RAYS) == 0) {
-		free_meta(meta);
-		return NULL;
-	}
-	if (setup_debugmap(meta, &meta->debugmap, DEBUGMAP_WIDTH, DEBUGMAP_HEIGHT) == 0){
-		free_meta(meta);
-		return NULL;
-	}
-
+	if (setup_mlx(meta) == 0)
+		return free_meta(meta);
+	if (setup_raycaster(&meta->raycaster, RAYS) == 0)
+		return free_meta(meta);
+	if (setup_debugmap(meta, &meta->debugmap, DEBUGMAP_WIDTH, DEBUGMAP_HEIGHT) == 0)
+		return free_meta(meta);
+	setup_fps_counter(&meta->fps_counter);
 	meta->dist_to_proj = (meta->win_width/2)/tan(meta->player.fov/2);
-	meta->mouse_sensitivity = 0.15f;
-
-	meta->fps_counter.img = NULL;
-	meta->fps_counter.lastTime = get_time();
-	meta->fps_counter.nbFrames = 0;
 	meta->prev_mouse_pos = (point_t){512,512};
-
-
+	meta->mouse_sensitivity = 0.15f;
 	meta->tot_sprites = 0;
 	meta->sprite_data = NULL;
-	float y = 400.f;
-	for (int i = 0; i < 10; i++)
-	{
-		add_sprite(meta,704.f,y,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
-		y+=40;
-	}
-	add_sprite(meta,30.f,30.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
-
-	// add_sprite(meta,704.f,400.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
-	// add_sprite(meta,704.f,500.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
-	// add_sprite(meta,704.f,600.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
-
-
-
-	//hiding the cursor, while retaining functionality
 	mlx_set_cursor_mode(meta->mlx, MLX_MOUSE_HIDDEN);
-
 	return meta;
 }
 
-void free_meta(meta_t* meta)
+void *free_meta(meta_t* meta)
 {
 	free_map(meta->map);
 	free(meta->raycaster.rays);
@@ -260,6 +121,7 @@ void free_meta(meta_t* meta)
 	}
 	free(meta->sprite_data);
 	free(meta);
+	return NULL;
 }
 
 int cleanup(meta_t* meta)

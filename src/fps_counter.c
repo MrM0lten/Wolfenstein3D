@@ -21,14 +21,6 @@ void count_frames(void *param)
     }
 }
 
-//utility function to slow down process for FPS testing
-void slow_process(void* param)
-{
-	int i = 0;
-	while(i < DELAYPROCESS)
-		i++;
-}
-
 //draw fps counter
 void update_fps_counter(meta_t *meta)
 {

@@ -32,11 +32,9 @@ map_t* read_map(char *path)
     }
     close(fd);
     if(!validate_map(map)) {
-		debug_map(map);
         free_map(map);
         return NULL;
     }
-    debug_map(map);
     return map;
 }
 
@@ -79,63 +77,11 @@ map_t* init_map(void)
         map->file_data[i] = NULL;
         map->texture_data[i] = NULL;
     }
-
     return map;
-
 }
 
-//returns 1 on success
-// 0 on failure
-int validate_map(map_t* map)
+void load_texture_data(map_t* map)
 {
-    int ret = 1;
-
-    for (int i = 0; i < map->total_textures; i++) {
-
-        if(map->file_data[i] == NULL || access(map->file_data[i],F_OK | R_OK)) {
-            if(i == TXT_DOOR) {
-                log_string(1,1,"No DOOR texture found, replacing doors with empty tiles");
-                for (int i = 0; i < map->map_dim; i++){
-                    if(map->map[i] == GD_DOOR_CLOSE)
-                        map->map[i] = GD_FREE;
-                }
-            }
-            else {
-                log_string(2,1,"No texture found");
-                ret = 0;
-            }
-        }
-    }
-
-    if(map->col_ceil == 0) {
-        log_string(2,1,"No Ceiling color found");
-        ret = 0;
-    }
-    if(map->col_floor == 0) {
-        log_string(2,1,"No Ceiling color found");
-        ret = 0;
-    }
-    if(map->p_pos_x == -1) {
-        log_string(2,1,"player Position was not set within the map");
-        ret = 0;
-    }
-
-    int val;
-    //check if each 0 has only 1 and 0 as adjacent positions
-    for (int y = 0; y < map->map_y; y++) {
-        for (int x = 0; x < map->map_x; x++)
-        {
-            val = map->map[y * map->map_x + x];
-            if(val == GD_VOID)
-                continue;
-            if(val == -1 || !is_walled(x,y,map))
-            {
-                log_string(2, 1, "Map is impossible.");
-                return 0;
-            }
-        }
-    }
-
     //load pngs into texture buffers, resize them to 64x64,remove transparency
     for (int i = 0; i < map->total_textures; i++) {
         int flag = 0;
@@ -157,6 +103,72 @@ int validate_map(map_t* map)
             log_string(1, 2, map->file_data[i], ": Walls and Doors need to be fully opaque. Fixing now...");
     }
 
+}
+
+int validate_files(map_t* map)
+{
+    int ret = 1;
+    for (int i = 0; i < map->total_textures; i++) {
+        if(map->file_data[i] == NULL || access(map->file_data[i],F_OK | R_OK)) {
+            if(i == TXT_DOOR) {
+                log_string(1,1,"No DOOR texture found, replacing doors with empty tiles");
+                for (int i = 0; i < map->map_dim; i++){
+                    if(map->map[i] == GD_DOOR_CLOSE)
+                        map->map[i] = GD_FREE;
+                }
+            }
+            else {
+                log_string(2,1,"No texture found");
+                ret = 0;
+            }
+        }
+    }
+    return ret;
+}
+
+//check if each 0 has only 1 and 0 as adjacent positions
+int validate_grid(map_t* map)
+{
+    int val = 1;
+    for (int y = 0; y < map->map_y; y++) {
+        for (int x = 0; x < map->map_x; x++)
+        {
+            val = map->map[y * map->map_x + x];
+            if(val == GD_VOID)
+                continue;
+            if(val == -1 || !is_walled(x,y,map))
+            {
+                log_string(2, 1, "Map is impossible.");
+                return 0;
+            }
+        }
+    }
+    return val;
+}
+
+//returns 1 on success
+// 0 on failure
+int validate_map(map_t* map)
+{
+    int ret = 1;
+    if(validate_files(map) == 0)
+        ret = 0;
+    if(map->col_ceil == 0) {
+        log_string(2,1,"No Ceiling color found");
+        ret = 0;
+    }
+    if(map->col_floor == 0) {
+        log_string(2,1,"No Ceiling color found");
+        ret = 0;
+    }
+    if(map->p_pos_x == -1) {
+        log_string(2,1,"player Position was not set within the map");
+        ret = 0;
+    }
+    if(validate_grid(map) == 0)
+        ret = 0;
+    if(ret == 1)
+        load_texture_data(map);
     return ret;
 }
 
@@ -171,7 +183,6 @@ void free_map(map_t *map)
     }
     free(map->file_data);
     free(map->texture_data);
-
     free(map->map);
     free(map);
 }

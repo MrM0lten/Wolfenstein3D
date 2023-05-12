@@ -28,9 +28,6 @@
 
 #define PI 3.1415926
 
-#define DELAYPROCESS 100000000
-#define MAX_DRAW_DIST 1000
-
 #define DBG_GRID_WALL 0xA9A9A9FF
 #define DBG_GRID_FREE 0xFFFFFFFF
 #define DBG_GRID_VOID 0x000000FF
@@ -196,7 +193,6 @@ typedef struct meta
 //len needs to be renamed or additional param used for actual wall pixel height
 // Raycaster
 void raycaster(int nb_rays, double fov,ray *arr,meta_t *meta, int channel);
-void print_raydata();
 ray raycast(double radian, meta_t* meta, int channel);
 double	vector2d_len(double x, double y);
 
@@ -244,11 +240,23 @@ int find_texture_id(char *line);
 int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
 bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight);
-void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath, char *filepath2);
 double angle_fix(double angle);
+double dotProd(point_t a,point_t b);
+uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(uint8_t, void*), void* transform);
+uint8_t col_default(uint8_t col, void* effect);
+
+
+//input
+void ft_hook(void* param);
+void mouse_rot(double xpos, double ypos, void* param);
+void ft_key(mlx_key_data_t keydata, void* param);
+
+//sprites
+void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath, char *filepath2);
+void draw_sprites(meta_t *meta, player_t *player, sprite_t **sprite_arr, int size);
 
 //cleanup
-void free_meta(meta_t* meta);
+void *free_meta(meta_t* meta);
 int cleanup(meta_t* meta);
 
 //error
