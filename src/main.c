@@ -222,19 +222,21 @@ meta_t *setup()
 
 	meta->tot_sprites = 0;
 	meta->sprite_data = NULL;
-	add_sprite(meta,704.f,400.f,"./resources/textures/officer.png");
+	// add_sprite(meta,704.f,400.f,"./resources/textures/officer.png");
 	// add_sprite(meta,(point_t){704.f,500.f},"./resources/textures/officer.png");
 	// add_sprite(meta,(point_t){704.f,600.f},"./resources/textures/officer.png");
-	// meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
-	// meta->sprite_data[0] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[0]->pos = (point_t){704.f,500.f};
-	// meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
-	// meta->sprite_data[1] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[1]->pos = (point_t){704.f,400.f};
-	// meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
-	// meta->sprite_data[2] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[2]->pos = (point_t){680.f,550.f};
-	// meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
+
+	meta->tot_sprites = 3;
+	meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
+	meta->sprite_data[0] =  malloc(sizeof(sprite_t));
+	meta->sprite_data[0]->pos = (point_t){704.f,500.f};
+	meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
+	meta->sprite_data[1] =  malloc(sizeof(sprite_t));
+	meta->sprite_data[1]->pos = (point_t){704.f,400.f};
+	meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
+	meta->sprite_data[2] =  malloc(sizeof(sprite_t));
+	meta->sprite_data[2]->pos = (point_t){680.f,550.f};
+	meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
 
 	printf("total sprites = %d\n",meta->tot_sprites);
 	//hiding the cursor, while retaining functionality

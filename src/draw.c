@@ -194,14 +194,16 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 
 	float itx = 0, ity = 0;
 	int x_text = 0, y_text = 0;
-
+	int ray_index;
 	for (int x = 0; x < projected_width - 1; x++) {
 		itx += dx;
 		x_text = (int)itx;
 		ity = 0;
 		y_text = 0;
-		if(vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[screen_x - (projected_width/2) + x].len) //only draw sprite if its closer than current wall at that pixel collumn
+		ray_index = screen_x - (projected_width/2) + x;
+		if(ray_index <= 0 || ray_index >= RAYS || vector2d_len(sp.x,sp.y) >= meta->raycaster.rays[ray_index].len) {
 				continue;
+		}//only draw sprite if its closer than current wall at that pixel collumn
 		for (int y = 0; y < projected_height-1; y++) {
 			ity += dy;
 			y_text = (int)ity;
