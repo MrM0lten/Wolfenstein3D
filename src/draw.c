@@ -1,13 +1,20 @@
 #include "wolfenstein.h"
 
-void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath)
+void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath, char *filepath2)
 {
-	if(filepath == NULL || access(filepath, F_OK | R_OK))
+	if(filepath == NULL || access(filepath, F_OK | R_OK)
+	|| filepath2 == NULL || access(filepath2, F_OK | R_OK))
 		return log_string(1,1,"Tried adding sprite, but cant find file.");
 
 	sprite_t* new = malloc(sizeof(sprite_t));
-	new->texture = mlx_load_png(filepath);
-	if(!new->texture) {
+	new->texture_01 = mlx_load_png(filepath);
+	if(!new->texture_01) {
+		free(new);
+		return log_string(1,1,"Load PNG for sprite failed.");
+	}
+	new->texture_02 = mlx_load_png(filepath2);
+	if(!new->texture_02) {
+		free(new->texture_01);
 		free(new);
 		return log_string(1,1,"Load PNG for sprite failed.");
 	}
@@ -129,7 +136,6 @@ void draw_wall(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, floa
 	mlx_texture_t* texture = get_text_from_hit(map,ray);
 	int x_text = get_texture_offset_x(ray); //already knows about flipped or not
 	int y_text = 0;
-
 	//calculate what direction to read from
 	float delta = CUBE_DIM / wall_height;
 	float it = 0;
@@ -187,14 +193,20 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 	int screen_y = halfheight + halfheight * zOffset_to_cam/dist_to_obj_vert;
 
 	int projected_height = meta->dist_to_proj * (64) / (vector2d_len(sp.x,sp.y) * cos(meta->player.a - angle_fix(atan2(sp.y, sp.x))));
-	int	projected_width = (projected_height * sprite->texture->width) / sprite->texture->height;
+	int	projected_width = (projected_height * sprite->texture_01->width) / sprite->texture_01->height;
 
-	float dx = (float)sprite->texture->width / projected_width;
-	float dy = (float)sprite->texture->height / projected_height;
+	float dx = (float)sprite->texture_01->width / projected_width;
+	float dy = (float)sprite->texture_01->height / projected_height;
 
 	float itx = 0, ity = 0;
 	int x_text = 0, y_text = 0;
 	int ray_index;
+
+	mlx_texture_t* read_texture;
+	if(get_time() % 2 == 0)
+		read_texture = sprite->texture_01;
+	else
+		read_texture = sprite->texture_02;
 	for (int x = 0; x < projected_width - 1; x++) {
 		itx += dx;
 		x_text = (int)itx;
@@ -206,7 +218,7 @@ void draw_sprite(meta_t* meta, sprite_t* sprite)
 		for (int y = 0; y < projected_height-1; y++) {
 			ity += dy;
 			y_text = (int)ity;
-			unsigned int col = get_color_from_text(sprite->texture, x_text, y_text, col_default,NULL);
+			unsigned int col = get_color_from_text(read_texture, x_text, y_text, col_default,NULL);
 			if (col != 0x980088FF)
 				my_mlx_put_pixel(meta->main_scene, (point_t){screen_x - (projected_width/2) + x, screen_y - projected_height + y}, col);
 		}

@@ -222,23 +222,20 @@ meta_t *setup()
 
 	meta->tot_sprites = 0;
 	meta->sprite_data = NULL;
-	add_sprite(meta,704.f,400.f,"./resources/textures/officer.png");
-	add_sprite(meta,704.f,500.f,"./resources/textures/officer.png");
-	add_sprite(meta,704.f,600.f,"./resources/textures/officer.png");
+	float y = 400.f;
+	for (int i = 0; i < 10; i++)
+	{
+		add_sprite(meta,704.f,y,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
+		y+=40;
+	}
+	add_sprite(meta,30.f,30.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
 
-	// meta->tot_sprites = 3;
-	// meta->sprite_data = malloc(sizeof(sprite_t*) * meta->tot_sprites);
-	// meta->sprite_data[0] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[0]->pos = (point_t){704.f,500.f};
-	// meta->sprite_data[0]->texture = mlx_load_png("./resources/textures/officer.png");
-	// meta->sprite_data[1] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[1]->pos = (point_t){704.f,400.f};
-	// meta->sprite_data[1]->texture = mlx_load_png("./resources/textures/officer.png");
-	// meta->sprite_data[2] =  malloc(sizeof(sprite_t));
-	// meta->sprite_data[2]->pos = (point_t){680.f,550.f};
-	// meta->sprite_data[2]->texture = mlx_load_png("./resources/textures/officer.png");
+	// add_sprite(meta,704.f,400.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
+	// add_sprite(meta,704.f,500.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
+	// add_sprite(meta,704.f,600.f,"./resources/textures/WF_Officer_back.png","./resources/textures/WF_Officer_idle.png");
 
-	printf("total sprites = %d\n",meta->tot_sprites);
+
+
 	//hiding the cursor, while retaining functionality
 	mlx_set_cursor_mode(meta->mlx, MLX_MOUSE_HIDDEN);
 
@@ -253,8 +250,10 @@ void free_meta(meta_t* meta)
 		for (int i = 0; i < meta->tot_sprites; i++)
 		{
 			if(meta->sprite_data[i] != NULL) {
-				free(meta->sprite_data[i]->texture->pixels);
-				free(meta->sprite_data[i]->texture);
+				free(meta->sprite_data[i]->texture_01->pixels);
+				free(meta->sprite_data[i]->texture_01);
+				free(meta->sprite_data[i]->texture_02->pixels);
+				free(meta->sprite_data[i]->texture_02);
 				free(meta->sprite_data[i]);
 			}
 		}

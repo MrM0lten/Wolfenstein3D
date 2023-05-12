@@ -21,7 +21,7 @@
 
 #define CUBE_DIM 64
 #define PLAYER_HEIGHT 0
-#define PLAYER_COL_DIST 10
+#define PLAYER_COL_DIST 15
 #define MAX_RAY_ITER 32
 
 #define RAYS 1024
@@ -83,7 +83,8 @@ typedef struct point_s
 typedef struct sprite_s
 {
 	point_t pos;
-	mlx_texture_t *texture;
+	mlx_texture_t *texture_01;
+	mlx_texture_t *texture_02;
 	double len;
 } sprite_t;
 
@@ -243,7 +244,7 @@ int find_texture_id(char *line);
 int is_walled(int x, int y, map_t* map);
 int ft_strarr_len(char **arr);
 bool resize_texture(mlx_texture_t* txt, uint32_t nwidth, uint32_t nheight);
-void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath);
+void add_sprite(meta_t* meta,float pos_x,float pos_y, char *filepath, char *filepath2);
 double angle_fix(double angle);
 
 //cleanup
