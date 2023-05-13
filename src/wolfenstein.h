@@ -22,7 +22,7 @@
 #define CUBE_DIM 64
 #define PLAYER_HEIGHT 0
 #define PLAYER_COL_DIST 15
-#define MAX_RAY_ITER 32
+#define MAX_RAY_ITER 1024
 
 #define RAYS 1024
 
