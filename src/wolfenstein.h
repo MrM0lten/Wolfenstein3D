@@ -34,6 +34,8 @@
 #define DBG_GRID_DOOR 0x393939FF
 #define DBG_GRID_BORDER 0x303030FF
 
+#define F_FILL_VAL 7
+
 enum texture_type{
 	TXT_NORTH = 0,
 	TXT_EAST = 1,
