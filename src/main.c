@@ -76,12 +76,12 @@ int setup_fps_counter(fps_counter_t* fps_counter)
 	return 1;
 }
 
-meta_t *setup()
+meta_t *setup(char *file)
 {
 	meta_t *meta = malloc(sizeof(meta_t));
 	meta->win_height = WIN_HEIGHT;
 	meta->win_width = WIN_WIDTH;
-	meta->map = read_map("./resources/maps/bigger.cub");
+	meta->map = read_map(file);
 	if (meta->map == NULL) {
 		free(meta);
 		return NULL;
@@ -131,9 +131,15 @@ int cleanup(meta_t* meta)
 	return 1;
 }
 
-int main()
+int main(int ac, char** av)
 {
-	meta_t *meta = setup();
+	if(ac != 2)
+	{
+		log_string(2,1,"Only 1 argument may be used.");
+		return 1;
+	}
+
+	meta_t *meta = setup(av[1]);
 	if (meta == NULL) {
 		return 1;
 	}
