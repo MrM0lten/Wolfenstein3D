@@ -131,19 +131,19 @@ void map_flood_fill(int val,int pos_x,int pos_y, map_t* map, bool* visited)
     int index = pos_y * map->map_x + pos_x;
     if(visited[index])
         return;
-    if(map->map[index] == GD_WALL || map->map[index] == GD_VOID || map->map[index] == val || map->map[index] == -1)
+    if(map->map[index] != GD_FREE && map->map[index] != GD_DOOR_CLOSE)
         return;
-    if(pos_x == 0 || pos_x + 1 == map->map_x || pos_y == 0 || pos_y + 1 == map->map_y) {
-        visited[index] = 1;
-        map->map[index] = val;
-        return;
-    }
+
     visited[index] = 1;
     map->map[index] = val;
-    map_flood_fill(val,pos_x + 1,pos_y,map,visited);
-    map_flood_fill(val,pos_x - 1,pos_y,map,visited);
-    map_flood_fill(val,pos_x,pos_y + 1,map,visited);
-    map_flood_fill(val,pos_x,pos_y - 1,map,visited);
+    if(pos_x + 1 != map->map_x)
+        map_flood_fill(val, pos_x + 1, pos_y, map,visited);
+    if(pos_x != 0)
+        map_flood_fill(val, pos_x - 1, pos_y, map,visited);
+    if(pos_y + 1 != map->map_y)
+        map_flood_fill(val, pos_x,pos_y + 1, map,visited);
+    if(pos_y != 0)
+        map_flood_fill(val, pos_x,pos_y - 1, map,visited);
 }
 
 int check_cells(map_t* map)
@@ -202,7 +202,7 @@ int validate_map(map_t* map)
         log_string(2,1,"player Position was not set within the map");
         ret = 0;
     }
-    if(validate_grid(map) == 0)
+    if(ret && validate_grid(map) == 0)
         ret = 0;
     if(ret == 1)
         load_texture_data(map);

@@ -92,7 +92,7 @@ static void fill_map(map_t* map,t_list* lst_line)
                 map->map[pos] = GD_FREE;
                 map->p_orient = player_rot_from_char(content[i]);
                 map->p_pos_x = i;
-                map->p_pos_y = (pos + 1) / map->map_x;
+                map->p_pos_y = pos / map->map_x;
             }
             else {
                 map->map[pos] = -1;
