@@ -177,8 +177,6 @@ int validate_grid(map_t* map)
     temp_map.map_y = map->map_y;
     temp_map.map_dim = map->map_dim;
     map_flood_fill(F_FILL_VAL, map->p_pos_x, map->p_pos_y, &temp_map, visited);
-    print_map(&temp_map);
-
     int ret = check_cells(&temp_map);
     free(temp_map.map);
     free(visited);
