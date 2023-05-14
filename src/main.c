@@ -10,9 +10,7 @@ int setup_debugmap(meta_t *meta, debug_t* debugmap, int width, int height)
 	else
 		debugmap->grid_size = meta->map->map_x;
 	debugmap->grid_size = height/find_next_pow(debugmap->grid_size);
-	printf("GRIDSIZE=%d\n", debugmap->grid_size);
 	debugmap->ratio = ((float)CUBE_DIM/debugmap->grid_size);
-	printf("RATIO=%f\n", debugmap->ratio);
 	debugmap->width = width;
 	debugmap->height = height;
 	debugmap->img = mlx_new_image(meta->mlx, width, height);

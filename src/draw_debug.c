@@ -81,7 +81,7 @@ void draw_debugmap(void *param)
 	debug_t* debug = &meta->debugmap;
 	point_t p_gridpos ={(meta->player.pos.x/debug->ratio),(meta->player.pos.y/debug->ratio)};
 	draw_map_squares(meta, debug);
-	//draw_map_rays(meta, debug, p_gridpos);
+	draw_map_rays(meta, debug, p_gridpos);
 	draw_map_sprite(meta, debug, p_gridpos);
 	draw_map_player(meta->debugmap.img, &meta->player,debug->ratio);
 }

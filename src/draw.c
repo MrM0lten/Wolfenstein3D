@@ -46,6 +46,7 @@ uint32_t get_color_from_text(mlx_texture_t *texture, int x, int y,uint8_t (*f)(u
 		  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 1 + (x * 4)],transform)  << 2 * 8
 		  | (uint32_t)f(texture->pixels[y * texture->width * 4 + 2 + (x * 4)],transform) << 1 * 8
 		  | (uint32_t)texture->pixels[y * texture->width * 4 + 3 + (x * 4)] << 0 * 8 );
+	return 0;
 }
 
 int darken(int col, float modifier) {
@@ -69,6 +70,7 @@ mlx_texture_t* get_text_from_hit(map_t* map, ray* ray)
 
 	if(map->map[(int)ray_grid_pos.y * map->map_x + (int)ray_grid_pos.x] == GD_DOOR_CLOSE)
 		return map->texture_data[TXT_DOOR];
+
 	return map->texture_data[ray->hit_dir];
 }
 
@@ -107,7 +109,7 @@ void draw_wall(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, floa
 
 		if (ray->hit_dir == DIR_NORTH || ray->hit_dir == DIR_SOUTH) {
 			my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
-			darken(get_color_from_text(texture, x_text, y_text, col_default, effect), 0.7));
+			get_color_from_text(texture, x_text, y_text, col_default, effect));
 		}
 		else {
 			my_mlx_put_pixel(image, (point_t){screen_pos.x, i + screen_pos.y},
@@ -131,7 +133,6 @@ void draw_scene(void *param)
 	float delta = IMG_WIDTH/meta->raycaster.num_rays;
 	float pos = 0;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta,GD_WALL | GD_DOOR_CLOSE);
-	//debug_meta(meta);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
 		wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
 		wall_upper.x = i;

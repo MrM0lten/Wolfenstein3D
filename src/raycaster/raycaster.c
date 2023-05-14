@@ -8,7 +8,7 @@ double	vector2d_len(double x, double y)
 int is_hit(double rx, double ry, meta_t* meta, int channel)
 {
 	if (rx < 0 || ry < 0)
-		return 0;
+		return 1;
 	int mx = (int)rx>>6;
 	int my = (int)ry>>6;
 	int mp = my * meta->map->map_x + mx;
@@ -24,7 +24,7 @@ point_t raycast_hor(double radian, meta_t* meta,int channel)
 {
 	double px = meta->player.pos.x, py = meta->player.pos.y, rx, ry, xo, yo;
 	if (radian > PI) {
-		ry = (((int)py>>6)<<6)-0.002;
+		ry = (((int)py>>6)<<6)-0.00001;
 		rx = px-((py-ry)/tan(radian));
 		yo = -CUBE_DIM, xo = yo/tan(radian);
 	}
@@ -45,7 +45,7 @@ point_t raycast_ver(double radian, meta_t* meta,int channel)
 {
 	double px = meta->player.pos.x, py = meta->player.pos.y, rx, ry, xo, yo;
 	if (radian > PI/2 && radian < 1.5*PI) {
-		rx = (((int)px>>6)<<6)-0.002;
+		rx = (((int)px>>6)<<6)-0.00001;
 		ry = py - (tan(radian) * (px-rx));
 		xo = -CUBE_DIM, yo = tan(radian) * xo;
 	}
@@ -108,10 +108,5 @@ void raycaster(int nb_rays, double fov, ray *arr, meta_t *meta, int channel)
 		double ray_angle =  angle_fix(p->a - (atan2(i-(nb_rays/2), meta->dist_to_proj)*-1));
 		arr[i] = raycast(ray_angle, meta, channel);
 		arr[i].len = arr[i].len * cos(p->a - ray_angle);
-
-		// arr[i].len = 10;
-		// arr[i].dir = 10;
-		// arr[i].hit = (point_t){10,10};
-		// arr[i].hit_dir = 1;
 	}
 }
