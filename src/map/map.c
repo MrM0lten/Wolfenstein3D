@@ -195,7 +195,7 @@ int validate_map(map_t* map)
         ret = 0;
     }
     if(map->col_floor == 0) {
-        log_string(2,1,"No Ceiling color found");
+        log_string(2,1,"No Floor color found");
         ret = 0;
     }
     if(map->p_pos_x == -1) {

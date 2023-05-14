@@ -30,6 +30,11 @@ int find_next_pow(int val)
 
 void draw_map_squares(meta_t *meta, debug_t *debug)
 {
+	for (int i = 0; i < meta->debugmap.height; i++) {
+		for (int j = 0; j < meta->debugmap.width; j++) {
+			my_mlx_put_pixel(meta->debugmap.img, (point_t){i, j}, 0x00000000);
+		}
+	}
 	for (int i = 0; i < meta->map->map_x; i++) {
 		for (int j = 0; j < meta->map->map_y; j++) {
 			if (meta->map->map[j * meta->map->map_x + i] == GD_WALL) {
