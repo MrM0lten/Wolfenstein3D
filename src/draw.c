@@ -114,7 +114,6 @@ void draw_wall(mlx_image_t *image, map_t* map,ray* ray, point_t screen_pos, floa
 			get_color_from_text(texture, x_text, y_text, col_default, effect));
 		}
 	}
-
 }
 
 double dotProd(point_t a,point_t b)
@@ -132,15 +131,16 @@ void draw_scene(void *param)
 	float delta = IMG_WIDTH/meta->raycaster.num_rays;
 	float pos = 0;
 	raycaster(meta->raycaster.num_rays, meta->player.fov, meta->raycaster.rays, meta,GD_WALL | GD_DOOR_CLOSE);
+	//debug_meta(meta);
 	for (int i = 0; i < meta->raycaster.num_rays; i++) {
-			wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
-			wall_upper.x = i;
-			wall_upper.y = (int)(meta->win_height - wall_height) / 2;
-			wall_lower.x = i;
-			wall_lower.y = (int)(meta->win_height + wall_height) / 2;
-			drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
-			draw_wall(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, NULL);
-			drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
+		wall_height = ((CUBE_DIM-PLAYER_HEIGHT) * meta->dist_to_proj)/(rayc->rays[i].len);
+		wall_upper.x = i;
+		wall_upper.y = (int)(meta->win_height - wall_height) / 2;
+		wall_lower.x = i;
+		wall_lower.y = (int)(meta->win_height + wall_height) / 2;
+		drawline(meta->main_scene, (point_t){i, 0}, wall_upper, meta->map->col_ceil);
+		draw_wall(meta->main_scene, meta->map, &rayc->rays[i], wall_upper, wall_height, NULL);
+		drawline(meta->main_scene, wall_lower, (point_t){i, meta->win_height}, meta->map->col_floor);
 	}
 	draw_sprites(meta, &meta->player, meta->sprite_data, meta->tot_sprites);
 }

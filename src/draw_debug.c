@@ -1,6 +1,6 @@
 #include "wolfenstein.h"
 
-void draw_debugsprite(mlx_image_t* img,sprite_t* sprite, int ratio,uint32_t col)
+void draw_debugsprite(mlx_image_t* img,sprite_t* sprite, float ratio,uint32_t col)
 {
     point_t gridpos = (point_t){sprite->pos.x/ratio,sprite->pos.y/ratio};
     int size = 5;
@@ -8,7 +8,7 @@ void draw_debugsprite(mlx_image_t* img,sprite_t* sprite, int ratio,uint32_t col)
     drawline(img,(point_t){gridpos.x-size, gridpos.y + size}, (point_t){gridpos.x + size, gridpos.y - size}, col);
 }
 
-void draw_map_player(mlx_image_t *img, player_t *player,int ratio)
+void draw_map_player(mlx_image_t *img, player_t *player, float ratio)
 {
 	int p_size = 6;
 	point_t p_gridpos ={(player->pos.x/ratio),(player->pos.y/ratio)};
@@ -81,7 +81,7 @@ void draw_debugmap(void *param)
 	debug_t* debug = &meta->debugmap;
 	point_t p_gridpos ={(meta->player.pos.x/debug->ratio),(meta->player.pos.y/debug->ratio)};
 	draw_map_squares(meta, debug);
-	draw_map_rays(meta, debug, p_gridpos);
+	//draw_map_rays(meta, debug, p_gridpos);
 	draw_map_sprite(meta, debug, p_gridpos);
 	draw_map_player(meta->debugmap.img, &meta->player,debug->ratio);
 }

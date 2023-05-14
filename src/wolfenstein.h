@@ -66,7 +66,7 @@ typedef struct debug_s
 	int width;
 	int height;
 	int grid_size;
-	int ratio;
+	float ratio;
 
 	int db_rays;
 	int db_show_sprites;

@@ -108,5 +108,10 @@ void raycaster(int nb_rays, double fov, ray *arr, meta_t *meta, int channel)
 		double ray_angle =  angle_fix(p->a - (atan2(i-(nb_rays/2), meta->dist_to_proj)*-1));
 		arr[i] = raycast(ray_angle, meta, channel);
 		arr[i].len = arr[i].len * cos(p->a - ray_angle);
+
+		// arr[i].len = 10;
+		// arr[i].dir = 10;
+		// arr[i].hit = (point_t){10,10};
+		// arr[i].hit_dir = 1;
 	}
 }
